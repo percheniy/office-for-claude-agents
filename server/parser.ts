@@ -420,7 +420,7 @@ function handleAssistantMessage(
         if (agent.toolHistory.length >= MAX_TOOL_HISTORY) {
           agent.toolHistory.shift();
         }
-        agent.toolHistory.push({ name: toolName, timestamp: new Date().toISOString() });
+        agent.toolHistory.push({ toolId, name: toolName, timestamp: new Date().toISOString() });
 
         // Track tool counts for role detection
         if (!agent.toolCounts) agent.toolCounts = {};
@@ -527,10 +527,9 @@ function handleUserMessage(
           agent.activeToolNames.delete(completedToolId);
 
           // Update tool history with duration
-          const completedToolName = agent.activeToolNames.get(completedToolId);
           for (let i = agent.toolHistory.length - 1; i >= 0; i--) {
             const entry = agent.toolHistory[i];
-            if (entry.durationMs === undefined) {
+            if (entry.toolId === completedToolId && entry.durationMs === undefined) {
               const startMs = new Date(entry.timestamp).getTime();
               entry.durationMs = Date.now() - startMs;
               break;

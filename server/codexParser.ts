@@ -282,7 +282,7 @@ export function processCodexTranscriptLine(
       agent.activeToolNames.set(callId, toolName);
       agent.isWaiting = false;
       agent.activity = "typing";
-      agent.toolHistory.push({ name: toolName, timestamp: timestamp ?? new Date().toISOString() });
+      agent.toolHistory.push({ toolId: callId, name: toolName, timestamp: timestamp ?? new Date().toISOString() });
       if (agent.toolHistory.length > MAX_TOOL_HISTORY) {
         agent.toolHistory.shift();
       }

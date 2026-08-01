@@ -764,7 +764,7 @@ function processGenericAgentEvent(event: GenericAgentEvent, file: WatchedFile): 
       agent.activeToolNames.set(toolId, toolName);
       agent.isWaiting = false;
       agent.activity = GENERIC_READING_TOOLS.has(toolName.toLowerCase()) ? "reading" : "typing";
-      agent.toolHistory.push({ name: toolName, timestamp });
+      agent.toolHistory.push({ toolId, name: toolName, timestamp });
       if (agent.toolHistory.length > 50) agent.toolHistory.shift();
       forwardServerMessage({ type: "agentStatus", id: agent.id, status: "active" });
       forwardServerMessage({ type: "agentToolStart", id: agent.id, toolId, status });

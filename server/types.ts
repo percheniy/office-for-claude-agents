@@ -52,7 +52,7 @@ export interface TrackedAgent {
   startTime?: string;
   // Deep inspection
   permissionMode?: string;
-  toolHistory: Array<{ name: string; timestamp: string; durationMs?: number }>;
+  toolHistory: Array<{ name: string; timestamp: string; durationMs?: number; toolId?: string }>;
   // Role — from Claude Code's agentSetting field in JSONL
   agentSetting?: string;   // real role from Claude Code (e.g. "Explore", "Code Reviewer")
   agentDescription?: string; // description from meta.json (e.g. "Review code for security issues")
