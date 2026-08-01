@@ -191,6 +191,7 @@ npm start
   &amp;&amp; npm install \
   &amp;&amp; npm start
 </code></pre>
+<p><code>npm start</code> builds <code>dist/server.js</code> automatically only in a source checkout. An installed npm/npx package with an existing <code>dist</code> is not rebuilt.</p>
 </details>
 
 <p>Open:</p>

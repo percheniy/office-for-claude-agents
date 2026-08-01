@@ -12,7 +12,8 @@
   "files": [
     "dist/",
     "bin/",
-    "shared/"
+    "shared/",
+    "scripts/ensure-dist.js"
   ],
   "scripts": {
     "postinstall": "[ -d webview-ui ] && npm --prefix webview-ui install || true",
@@ -23,6 +24,7 @@
     "build": "npm run build:server && npm run build:ui",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist/server.js --external:chokidar --external:ws --external:express --external:pngjs",
     "build:ui": "cd webview-ui && npx vite build --outDir ../dist/public && cp -r public/assets ../dist/public/assets",
+    "prestart": "node scripts/ensure-dist.js",
     "start": "node dist/server.js",
     "test:security": "tsx scripts/test-security.ts",
     "test:layout": "tsx scripts/test-layout-migration.ts",

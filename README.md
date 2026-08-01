@@ -193,6 +193,7 @@ npm start
   &amp;&amp; npm install \
   &amp;&amp; npm start
 </code></pre>
+<p><code>npm start</code> автоматически собирает <code>dist/server.js</code> только в checkout с исходниками. В установленном npm/npx пакете уже готовый <code>dist</code> не пересобирается.</p>
 </details>
 
 <p>Откройте:</p>
