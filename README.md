@@ -220,6 +220,18 @@ npm start
 
 <p>Если стандартные папки отсутствуют, приложение всё равно стартует и явно покажет в левом сайдбаре, какие пути проверялись и чем их переопределить.</p>
 
+<h3>Источники OpenCode, Copilot и других CLI</h3>
+
+<p>Локальные JSONL-экспорты и hooks можно подключить без cloud API:</p>
+
+<pre><code class="language-bash">PIXEL_AGENTS_OPENCODE_SESSION_DIR=/path/to/opencode-jsonl \
+PIXEL_AGENTS_COPILOT_SESSION_DIR=/path/to/copilot-session-state \
+PIXEL_AGENTS_EVENTS_DIR=/path/to/generic-agent-events \
+npm start
+</code></pre>
+
+<p>Адаптеры читают локальные JSONL-файлы или hook/event-экспорт: Copilot — <code>events.jsonl</code>, OpenCode — JSONL в указанном каталоге. Нативная SQLite-база OpenCode намеренно не читается напрямую, поэтому не добавляются новые зависимости и риск повреждения базы. OpenCode, Gemini, Kimi, Qwen, DeepSeek и будущие инструменты могут отправлять нормализованные события в JSONL; для каждого события поддерживаются <code>session_start</code>, <code>tool_start</code>, <code>tool_end</code>, <code>message</code>, <code>stats</code>, <code>status</code>, <code>parent</code> и <code>session_end</code>. Неизвестное имя provider сохраняется и показывается в badge.</p>
+
 <pre><code class="language-json">{
   "sessionSources": {
     "claudeProjectsDir": "/absolute/path/to/claude/projects",

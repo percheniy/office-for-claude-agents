@@ -74,9 +74,9 @@ export interface TrackedAgent {
 // Messages sent from server to client via WebSocket
 // Must match the upstream message format expected by useExtensionMessages
 export type ServerMessage =
-  | { type: "agentCreated"; id: number; folderName: string; parentAgentId?: number; teamName?: string; isTeamLead?: boolean }
+  | { type: "agentCreated"; id: number; folderName: string; provider?: AgentProvider; parentAgentId?: number; teamName?: string; isTeamLead?: boolean }
   | { type: "agentClosed"; id: number }
-  | { type: "existingAgents"; agents: number[]; folderNames: Record<number, string>; agentMeta?: Record<number, { palette?: number; hueShift?: number; seatId?: string }>; parentAgentIds?: Record<number, number>; teamNames?: Record<number, string>; isTeamLeads?: Record<number, boolean> }
+  | { type: "existingAgents"; agents: number[]; folderNames: Record<number, string>; providers?: Record<number, string>; agentMeta?: Record<number, { palette?: number; hueShift?: number; seatId?: string }>; parentAgentIds?: Record<number, number>; teamNames?: Record<number, string>; isTeamLeads?: Record<number, boolean> }
   | { type: "agentToolStart"; id: number; toolId: string; status: string }
   | { type: "agentToolDone"; id: number; toolId: string }
   | { type: "agentToolsClear"; id: number }

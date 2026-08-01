@@ -111,6 +111,7 @@ export interface AgentCardProps {
   agentStats: Map<number, AgentStats>
   agentRoles: Map<number, AgentRoleInfo>
   agentTeamInfo: Map<number, { teamName?: string; isTeamLead?: boolean }>
+  agentProvider: string
   subagentCharacters: SubagentCharacter[]
   subsByParent: Map<number, SubagentCharacter[]>
   subagentTools: Record<number, Record<string, ToolActivity[]>>
@@ -125,6 +126,7 @@ export function AgentCard({
   agentStats,
   agentRoles,
   agentTeamInfo,
+  agentProvider,
   subagentCharacters: _subagentCharacters,
   subsByParent,
   subagentTools,
@@ -164,6 +166,9 @@ export function AgentCard({
           )}
           <span className="text-[18px] text-pixel-text font-bold overflow-hidden text-ellipsis whitespace-nowrap flex-1">
             {ch.folderName || `agent-${id}`}
+          </span>
+          <span className="text-[10px] px-1 font-bold uppercase tracking-[0.4px] leading-[14px] bg-white/[0.08] text-white/60 border border-white/[0.15]">
+            {agentProvider}
           </span>
           {roleInfo?.role && <span className="ml-auto"><RoleBadge role={roleInfo.role} colors={roleInfo.colors} /></span>}
         </div>

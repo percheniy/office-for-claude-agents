@@ -16,6 +16,7 @@ export interface AgentMessagesState {
   agentStatsMap: Map<number, AgentStats>
   agentRolesMap: Map<number, AgentRoleInfo>
   agentTeamInfoMap: Map<number, { teamName?: string; isTeamLead?: boolean }>
+  agentProviders: Map<number, string>
   agentDetailsState: AgentDetails | null
   agentConversationState: { id: number; messages: ConversationMessage[] } | null
   requestAgentDetails: (id: number) => void
@@ -25,6 +26,7 @@ export interface AgentMessagesState {
   setAgentStatsMap: React.Dispatch<React.SetStateAction<Map<number, AgentStats>>>
   setAgentRolesMap: React.Dispatch<React.SetStateAction<Map<number, AgentRoleInfo>>>
   setAgentTeamInfoMap: React.Dispatch<React.SetStateAction<Map<number, { teamName?: string; isTeamLead?: boolean }>>>
+  setAgentProviders: React.Dispatch<React.SetStateAction<Map<number, string>>>
   setAgentDetailsState: React.Dispatch<React.SetStateAction<AgentDetails | null>>
   setAgentConversationState: React.Dispatch<React.SetStateAction<{ id: number; messages: ConversationMessage[] } | null>>
 }
@@ -39,6 +41,7 @@ export function useAgentMessages(): AgentMessagesState {
   const [agentStatsMap, setAgentStatsMap] = useState<Map<number, AgentStats>>(new Map())
   const [agentRolesMap, setAgentRolesMap] = useState<Map<number, AgentRoleInfo>>(new Map())
   const [agentTeamInfoMap, setAgentTeamInfoMap] = useState<Map<number, { teamName?: string; isTeamLead?: boolean }>>(new Map())
+  const [agentProviders, setAgentProviders] = useState<Map<number, string>>(new Map())
   const [agentDetailsState, setAgentDetailsState] = useState<AgentDetails | null>(null)
   const [agentConversationState, setAgentConversationState] = useState<{ id: number; messages: ConversationMessage[] } | null>(null)
 
@@ -56,6 +59,7 @@ export function useAgentMessages(): AgentMessagesState {
     agentStatsMap,
     agentRolesMap,
     agentTeamInfoMap,
+    agentProviders,
     agentDetailsState,
     agentConversationState,
     requestAgentDetails,
@@ -65,6 +69,7 @@ export function useAgentMessages(): AgentMessagesState {
     setAgentStatsMap,
     setAgentRolesMap,
     setAgentTeamInfoMap,
+    setAgentProviders,
     setAgentDetailsState,
     setAgentConversationState,
   }
@@ -91,6 +96,7 @@ export function handleAgentMessage(
     setAgentStatsMap,
     setAgentRolesMap,
     setAgentTeamInfoMap,
+    setAgentProviders,
     setAgentDetailsState,
     setAgentConversationState,
   } = state
@@ -101,6 +107,12 @@ export function handleAgentMessage(
     const parentAgentId = msg.parentAgentId as number | undefined
     const teamName = msg.teamName as string | undefined
     const isTeamLead = msg.isTeamLead as boolean | undefined
+    const provider = typeof msg.provider === 'string' ? msg.provider : 'claude'
+    setAgentProviders((prev) => {
+      const next = new Map(prev)
+      next.set(id, provider)
+      return next
+    })
     // Store team info
     if (teamName || isTeamLead) {
       setAgentTeamInfoMap((prev) => {
@@ -138,6 +150,12 @@ export function handleAgentMessage(
   } else if (msg.type === 'agentClosed') {
     const id = msg.id as number
     setAgents((prev) => prev.filter((a) => a !== id))
+    setAgentProviders((prev) => {
+      if (!prev.has(id)) return prev
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
     setSelectedAgent((prev) => (prev === id ? null : prev))
     setAgentTools((prev) => {
       if (!(id in prev)) return prev

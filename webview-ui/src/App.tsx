@@ -59,7 +59,7 @@ function EditActionBar({ editor, editorState: es }: { editor: ReturnType<typeof 
 function App() {
   const editor = useEditorActions(getOfficeState, editorState)
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
-  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, layoutBackupFileName, loadedAssets, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
+  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, layoutBackupFileName, agentProviders, loadedAssets, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
 
   const [inspectedAgentId, setInspectedAgentId] = useState<number | null>(null)
   const handleInspectAgent = useCallback((agentId: number) => { setInspectedAgentId(agentId); requestAgentDetails(agentId); requestAgentConversation(agentId) }, [requestAgentDetails, requestAgentConversation])
@@ -186,7 +186,7 @@ function App() {
 
       {!editor.isEditMode && (
         <LeftSidebar agents={agents} agentTools={agentTools} agentStatuses={agentStatuses} agentStats={agentStats}
-          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} subagentCharacters={subagentCharacters}
+          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} agentProviders={agentProviders} subagentCharacters={subagentCharacters}
           subagentTools={subagentTools} officeState={officeState} onInspectAgent={handleInspectAgent}
           pipelineIssues={pipelineIssues} githubTasks={githubTasks} serverMode={serverMode} isShareMode={isShareMode()} />
       )}

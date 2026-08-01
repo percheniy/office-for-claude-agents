@@ -133,10 +133,12 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
   const folderNames: Record<number, string> = {};
   const agentMeta: Record<number, { palette?: number; hueShift?: number; seatId?: string }> = {};
   const parentAgentIds: Record<number, number> = {};
+  const providers: Record<number, string> = {};
   const teamNames: Record<number, string> = {};
   const isTeamLeads: Record<number, boolean> = {};
   for (const a of agentList) {
     folderNames[a.id] = a.projectName;
+    providers[a.id] = a.provider;
     if (a.parentAgentId !== undefined) {
       parentAgentIds[a.id] = a.parentAgentId;
     }
@@ -156,7 +158,7 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
       }
     }
   }
-  ws.send(JSON.stringify({ type: "existingAgents", agents: agentIds, folderNames, agentMeta, parentAgentIds, teamNames, isTeamLeads }));
+  ws.send(JSON.stringify({ type: "existingAgents", agents: agentIds, folderNames, providers, agentMeta, parentAgentIds, teamNames, isTeamLeads }));
 
   for (const a of agentList) {
     ws.send(JSON.stringify(buildAgentStatsMessage(a)));
@@ -193,7 +195,7 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
 
   // Re-send test agents
   for (const [id, data] of initDeps.testAgentData) {
-    ws.send(JSON.stringify({ type: "agentCreated", id, folderName: data.folderName, parentAgentId: data.parentAgentId }));
+    ws.send(JSON.stringify({ type: "agentCreated", id, folderName: data.folderName, provider: "claude", parentAgentId: data.parentAgentId }));
     ws.send(JSON.stringify({ type: "agentRole", id, role: data.role, autoDetected: true, colors: getRoleColors(data.role) }));
     ws.send(JSON.stringify({
       type: "agentStats", id, model: data.model,
@@ -479,7 +481,7 @@ export function setupConnectionHandler(
               const h = hierarchy[i];
               const id = ids[i];
               const parentId = h.useRootParent ? rootParentId : (h.parent >= 0 ? ids[h.parent] : undefined);
-              broadcast({ type: "agentCreated", id, folderName: h.name, parentAgentId: parentId });
+              broadcast({ type: "agentCreated", id, folderName: h.name, provider: "claude", parentAgentId: parentId });
               broadcast({
                 type: "agentStats", id, model: h.model,
                 totalInputTokens: h.tokens[0], totalOutputTokens: h.tokens[1],

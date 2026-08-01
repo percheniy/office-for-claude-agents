@@ -19,6 +19,7 @@ interface LeftSidebarProps {
   agentStats: Map<number, AgentStats>
   agentRoles: Map<number, AgentRoleInfo>
   agentTeamInfo: Map<number, { teamName?: string; isTeamLead?: boolean }>
+  agentProviders: Map<number, string>
   subagentCharacters: SubagentCharacter[]
   subagentTools: Record<number, Record<string, ToolActivity[]>>
   officeState: OfficeState
@@ -36,6 +37,7 @@ export function LeftSidebar({
   agentStats,
   agentRoles,
   agentTeamInfo,
+  agentProviders,
   subagentCharacters,
   subagentTools,
   officeState,
@@ -46,6 +48,7 @@ export function LeftSidebar({
 }: LeftSidebarProps) {
   const [collapsed, setCollapsed] = useState(false)
   const [tasksCollapsed, setTasksCollapsed] = useState(false)
+  const [providerFilter, setProviderFilter] = useState('all')
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), [])
   const toggleTasksCollapse = useCallback(() => setTasksCollapsed((v) => !v), [])
 
@@ -82,6 +85,10 @@ export function LeftSidebar({
   }
 
   const totalSubagents = [...subsByParent.values()].reduce((sum, subs) => sum + subs.length, 0)
+  const providers = [...new Set(mainAgents.map((id) => agentProviders.get(id) || 'claude'))].sort()
+  const filteredMainAgents = providerFilter === 'all'
+    ? mainAgents
+    : mainAgents.filter((id) => (agentProviders.get(id) || 'claude') === providerFilter)
   const totalCount = mainAgents.length + totalSubagents
 
   if (collapsed) {
@@ -113,18 +120,24 @@ export function LeftSidebar({
               {serverMode}
             </span>
           )}
+          {providers.length > 1 && (
+            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)} className="text-[11px] bg-pixel-btn text-pixel-text border border-pixel-border px-1 py-0.5">
+              <option value="all">All</option>
+              {providers.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
+            </select>
+          )}
         </div>
         <button onClick={toggleCollapse} className="px-1.5 py-0.5 text-[18px] text-pixel-text-dim bg-pixel-btn border-2 border-transparent cursor-pointer hover:bg-pixel-btn-hover" title="Collapse sidebar">{'\u25C0'}</button>
       </div>
 
       {/* Agents list */}
       <div className="flex-1 overflow-y-auto p-1 min-h-0">
-        {mainAgents.length === 0 ? (
+        {filteredMainAgents.length === 0 ? (
             <div className="p-4 text-center text-white/30 text-[18px] italic">
               No agents active
             </div>
           ) : (
-            mainAgents.map((id) => (
+            filteredMainAgents.map((id) => (
               <AgentCard
                 key={id}
                 id={id}
@@ -132,6 +145,7 @@ export function LeftSidebar({
                 agentStatuses={agentStatuses}
                 agentStats={agentStats}
                 agentRoles={agentRoles}
+                agentProvider={agentProviders.get(id) || 'claude'}
                 agentTeamInfo={agentTeamInfo}
                 subagentCharacters={subagentCharacters}
                 subsByParent={subsByParent}

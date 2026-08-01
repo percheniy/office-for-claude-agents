@@ -27,6 +27,7 @@
     "test:security": "tsx scripts/test-security.ts",
     "test:layout": "tsx scripts/test-layout-migration.ts",
     "test:port": "tsx scripts/test-port-safety.ts",
+    "test:providers": "tsx scripts/test-provider-adapters.ts",
     "test:model-info": "tsx scripts/test-model-info.ts",
     "import-tileset": "tsx scripts/import-tileset.ts",
     "extract-furniture": "tsx scripts/extract-furniture.ts"

@@ -5,7 +5,7 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 ## P0 — protect users and their work
 
 - [x] [#4](https://github.com/percheniy/office-for-claude-agents/issues/4) Bind the control server to loopback by default. Require explicit remote mode and authentication before exposing WebSocket commands. Never allow remote callers to launch Claude with `--dangerously-skip-permissions`.
-- [ ] [#1](https://github.com/percheniy/office-for-claude-agents/issues/1) Preserve custom layouts during bundled layout upgrades. Create a timestamped backup and provide a visible recovery path before replacing user data.
+- [x] [#1](https://github.com/percheniy/office-for-claude-agents/issues/1) Preserve custom layouts during bundled layout upgrades. Create a timestamped backup and provide a visible recovery path before replacing user data.
 - [x] [#6](https://github.com/percheniy/office-for-claude-agents/issues/6) Never terminate an unknown process that occupies the configured port. Verify PID ownership and keep PID state per port.
 
 ## P1 — restore promised behavior and release confidence
@@ -20,7 +20,7 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 
 ### P0
 
-1. [ ] [#12](https://github.com/percheniy/office-for-claude-agents/issues/12) Ingest OpenCode, GitHub Copilot, and future agent providers through one `AgentSource` contract and generic local event input.
+1. [x] [#12](https://github.com/percheniy/office-for-claude-agents/issues/12) Ingest OpenCode, GitHub Copilot, and future agent providers through one `AgentSource` contract and generic local event input.
 2. [ ] [#9](https://github.com/percheniy/office-for-claude-agents/issues/9) Keep tmux and SSH sessions alive, distinguish detached from dead agents, and safely reattach to the same process.
 3. [ ] [#8](https://github.com/percheniy/office-for-claude-agents/issues/8) After security issue [#4](https://github.com/percheniy/office-for-claude-agents/issues/4), securely send prompts, approve or deny permissions, interrupt work, and focus the owning session from the browser.
 

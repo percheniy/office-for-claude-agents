@@ -11,6 +11,7 @@ import crypto from "crypto";
 
 import { JsonlWatcher } from "./watcher.js";
 import { CodexJsonlWatcher } from "./codexWatcher.js";
+import { CopilotSource, GenericHookSource, OpenCodeSource } from "./genericSource.js";
 import {
   loadCharacterSprites,
   loadWallTiles,
@@ -118,7 +119,7 @@ if (previousAgentState) {
 // ── Watchers ────────────────────────────────────────────────────────────
 
 const claudeWatcher = new JsonlWatcher();
-const watchers = [claudeWatcher, new CodexJsonlWatcher()];
+const watchers = [claudeWatcher, new CodexJsonlWatcher(), new OpenCodeSource(), new CopilotSource(), new GenericHookSource()];
 
 // ── Initialize agent manager ────────────────────────────────────────────
 

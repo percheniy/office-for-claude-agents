@@ -138,6 +138,7 @@ export interface ExtensionMessageState {
   layoutReady: boolean
   layoutWasReset: boolean
   layoutBackupFileName: string | null
+  agentProviders: Map<number, string>
   loadedAssets?: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> }
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]
@@ -258,6 +259,12 @@ export function useExtensionMessages(
         const incoming = msg.agents as number[]
         const meta = (msg.agentMeta || {}) as Record<number, { palette?: number; hueShift?: number; seatId?: string }>
         const folderNames = (msg.folderNames || {}) as Record<number, string>
+        const incomingProviders = (msg.providers || {}) as Record<number, string>
+        agentState.setAgentProviders((prev) => {
+          const next = new Map(prev)
+          for (const id of incoming) next.set(id, incomingProviders[id] || 'claude')
+          return next
+        })
         const parentAgentIds = (msg.parentAgentIds || {}) as Record<number, number>
         const incomingTeamNames = (msg.teamNames || {}) as Record<number, string>
         const incomingIsTeamLeads = (msg.isTeamLeads || {}) as Record<number, boolean>
@@ -507,6 +514,7 @@ export function useExtensionMessages(
     layoutReady,
     layoutWasReset,
     layoutBackupFileName,
+    agentProviders: agentState.agentProviders,
     loadedAssets: assetState.loadedAssets,
     workspaceFolders: assetState.workspaceFolders,
     externalAssetDirectories: assetState.externalAssetDirectories,

@@ -2,12 +2,13 @@ import { existsSync, readFileSync, readdirSync, openSync, readSync, closeSync } 
 import { homedir } from "os";
 import { join } from "path";
 import type { TrackedAgent, ServerMessage } from "./types.js";
-import type { AgentProvider, WatchedFile } from "./sourceTypes.js";
+import type { AgentProvider, GenericAgentEvent, WatchedFile } from "./sourceTypes.js";
 import { getRoleColors, resolveDerivedAgentName, resolveDisplayRole } from "./roleDetector.js";
 import { processTranscriptLine, cleanupAgentParserState } from "./parser.js";
 import { processCodexTranscriptLine, cleanupCodexParserState } from "./codexParser.js";
 import { findPreviousAgent, type PersistedAgentState } from "./agentPersistence.js";
 import type { JsonlWatcher } from "./watcher.js";
+import { parseGenericAgentEvent } from "./genericParser.js";
 
 // ── Context window limits ─────────────────────────────────────────────────
 const MODEL_CONTEXT_LIMITS: Record<string, number> = {
@@ -193,7 +194,7 @@ function resolveOrphanParent(agent: TrackedAgent): void {
       }
       if (other.parentAgentId === undefined) {
         other.parentAgentId = agent.id;
-        broadcast({ type: "agentCreated", id: other.id, folderName: other.projectName, parentAgentId: agent.id });
+        broadcast({ type: "agentCreated", id: other.id, folderName: other.projectName, provider: other.provider, parentAgentId: agent.id });
         console.log(`[orphan] adopted ${other.projectName} (${other.id}) → parent ${agent.projectName} (${agent.id})`);
       }
     }
@@ -205,7 +206,7 @@ function resolveOrphanParent(agent: TrackedAgent): void {
     if (other.parentSessionId || other.parentAgentId !== undefined) continue;
 
     agent.parentAgentId = other.id;
-    broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, parentAgentId: other.id });
+    broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, provider: agent.provider, parentAgentId: other.id });
     console.log(`[orphan] ${agent.projectName} (${agent.id}) → parent ${other.projectName} (${other.id})`);
     break;
   }
@@ -307,7 +308,7 @@ export function resolveTeamParent(agent: TrackedAgent): void {
     for (const [, other] of agents) {
       if (!other.teamName && !other.parentSessionId && !other.parentAgentId && other.id !== agent.id && other.provider === "claude") {
         agent.parentAgentId = other.id;
-        broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, parentAgentId: other.id });
+        broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, provider: agent.provider, parentAgentId: other.id });
         console.log(`[team] lead ${agent.projectName} (${agent.id}) → parent ${other.projectName} (${other.id})`);
         break;
       }
@@ -318,7 +319,7 @@ export function resolveTeamParent(agent: TrackedAgent): void {
   for (const [, other] of agents) {
     if (other.teamName === agent.teamName && other.isTeamLead && other.id !== agent.id) {
       agent.parentAgentId = other.id;
-      broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, parentAgentId: other.id });
+      broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, provider: agent.provider, parentAgentId: other.id });
       console.log(`[team] ${agent.projectName} (${agent.id}) → parent ${other.projectName} (${other.id}) via team "${agent.teamName}"`);
       return;
     }
@@ -334,7 +335,7 @@ export function resolveTeamParent(agent: TrackedAgent): void {
           if (other.sessionId === leadSessionId && other.id !== agent.id) {
             agent.parentAgentId = other.id;
             tagAsTeamLead(other, agent.teamName);
-            broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, parentAgentId: other.id });
+            broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, provider: agent.provider, parentAgentId: other.id });
             console.log(`[team] ${agent.projectName} (${agent.id}) → parent ${other.projectName} (${other.id}) via config leadSessionId`);
             return;
           }
@@ -349,7 +350,7 @@ export function resolveTeamParent(agent: TrackedAgent): void {
     for (const [, other] of agents) {
       if (other.isTeamLead && other.gitBranch === agent.gitBranch && other.id !== agent.id && other.provider === agent.provider) {
         agent.parentAgentId = other.id;
-        broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, parentAgentId: other.id });
+        broadcast({ type: "agentCreated", id: agent.id, folderName: agent.projectName, provider: agent.provider, parentAgentId: other.id });
         console.log(`[team] ${agent.projectName} (${agent.id}) → parent ${other.projectName} (${other.id}) via shared branch "${agent.gitBranch}"`);
         return;
       }
@@ -365,6 +366,7 @@ export function rebuildAgentPlacement(agent: TrackedAgent): void {
     type: "agentCreated",
     id: agent.id,
     folderName: agent.projectName,
+    provider: agent.provider,
     parentAgentId: agent.parentAgentId,
     teamName: agent.teamName,
     isTeamLead: agent.isTeamLead,
@@ -480,6 +482,8 @@ export function handleFileAdded(file: WatchedFile): void {
     conversation: [],
   };
 
+  agent.model = file.model;
+
   if (prevAgent?.agentSetting) {
     agent.agentSetting = prevAgent.agentSetting;
   }
@@ -529,6 +533,7 @@ export function handleFileAdded(file: WatchedFile): void {
     type: "agentCreated",
     id: agent.id,
     folderName: agent.projectName,
+    provider: agent.provider,
     parentAgentId: agent.parentAgentId,
     teamName: agent.teamName,
     isTeamLead: agent.isTeamLead,
@@ -562,7 +567,7 @@ export function handleFileRemoved(file: WatchedFile): void {
   agents.delete(agentKey);
   if (file.provider === "claude") {
     cleanupAgentParserState(agent.id);
-  } else {
+  } else if (file.provider === "codex") {
     cleanupCodexParserState();
   }
   broadcast({ type: "agentClosed", id: agent.id });
@@ -584,10 +589,125 @@ export function handleWatchedLine(file: WatchedFile, line: string): void {
     return;
   }
 
-  processCodexTranscriptLine(line, agent, {
-    emit: forwardServerMessage,
-    onStatsUpdate: onAgentStatsUpdate,
-    onSubagentHint: applyCodexSubagentHint,
-    resolveSessionLabel: (sessionId) => resolveSessionLabel("codex", sessionId),
-  });
+  if (file.provider === "codex") {
+    processCodexTranscriptLine(line, agent, {
+      emit: forwardServerMessage,
+      onStatsUpdate: onAgentStatsUpdate,
+      onSubagentHint: applyCodexSubagentHint,
+      resolveSessionLabel: (sessionId) => resolveSessionLabel("codex", sessionId),
+    });
+    return;
+  }
+
+  const event = parseGenericAgentEvent(line);
+  if (event) processGenericAgentEvent(event, file);
+}
+
+const GENERIC_READING_TOOLS = new Set(["read", "grep", "glob", "search", "list", "find"]);
+
+function processGenericAgentEvent(event: GenericAgentEvent, file: WatchedFile): void {
+  const agent = agents.get(getAgentKey(file.provider, file.sessionId));
+  if (!agent) return;
+  const timestamp = event.timestamp ?? new Date().toISOString();
+
+  if (event.sessionId && event.sessionId !== agent.sessionId) return;
+  if (event.projectDir) {
+    agent.projectDir = event.projectDir;
+    agent.cwd = event.projectDir;
+  }
+  if (event.projectName && agent.nameSource !== "explicit") {
+    agent.projectName = event.projectName;
+    agent.nameSource = "derived";
+    forwardServerMessage({ type: "agentRenamed", id: agent.id, folderName: agent.projectName });
+  }
+  if (event.model && agent.model !== event.model) agent.model = event.model;
+  if (event.role && agent.agentSetting !== event.role) agent.agentSetting = event.role;
+
+  if (event.parentSessionId) {
+    agent.parentSessionId = event.parentSessionId;
+    const parent = agents.get(getAgentKey(file.provider, event.parentSessionId));
+    if (parent && agent.parentAgentId !== parent.id) {
+      agent.parentAgentId = parent.id;
+      rebuildAgentPlacement(agent);
+    }
+  }
+
+  switch (event.kind) {
+    case "session_start":
+    case "stats": {
+      if (event.inputTokens !== undefined) agent.totalInputTokens = event.inputTokens;
+      if (event.outputTokens !== undefined) agent.totalOutputTokens = event.outputTokens;
+      if (event.cacheReadTokens !== undefined) agent.totalCacheRead = event.cacheReadTokens;
+      if (event.cacheCreationTokens !== undefined) agent.totalCacheCreation = event.cacheCreationTokens;
+      if (event.contextTokens !== undefined) agent.currentContextTokens = event.contextTokens;
+      if (event.contextLimit !== undefined) agent.currentContextLimit = event.contextLimit;
+      onAgentStatsUpdate(agent);
+      return;
+    }
+    case "parent":
+      onAgentStatsUpdate(agent);
+      return;
+    case "tool_start": {
+      const toolId = event.toolId || `generic-${agent.id}-${Date.now()}`;
+      const toolName = event.toolName || "tool";
+      const status = event.toolStatus || event.status || `Using ${toolName}`;
+      agent.activeTools.set(toolId, { toolId, toolName, status });
+      agent.activeToolNames.set(toolId, toolName);
+      agent.isWaiting = false;
+      agent.activity = GENERIC_READING_TOOLS.has(toolName.toLowerCase()) ? "reading" : "typing";
+      agent.toolHistory.push({ name: toolName, timestamp });
+      if (agent.toolHistory.length > 50) agent.toolHistory.shift();
+      forwardServerMessage({ type: "agentStatus", id: agent.id, status: "active" });
+      forwardServerMessage({ type: "agentToolStart", id: agent.id, toolId, status });
+      return;
+    }
+    case "tool_end": {
+      const toolId = event.toolId;
+      if (!toolId) return;
+      agent.activeTools.delete(toolId);
+      agent.activeToolNames.delete(toolId);
+      forwardServerMessage({ type: "agentToolDone", id: agent.id, toolId });
+      if (agent.activeTools.size === 0) {
+        agent.activity = "waiting";
+        agent.isWaiting = true;
+        forwardServerMessage({ type: "agentStatus", id: agent.id, status: "waiting" });
+      }
+      return;
+    }
+    case "message": {
+      if (!event.text || !event.messageRole) return;
+      const message = {
+        role: event.messageRole,
+        text: event.text.slice(0, 3000),
+        timestamp,
+      };
+      agent.conversation.push(message);
+      if (agent.conversation.length > 100) agent.conversation.shift();
+      forwardServerMessage({ type: "agentConversationUpdate", id: agent.id, message });
+      if (event.messageRole === "assistant") {
+        agent.turnCount += 1;
+        onAgentStatsUpdate(agent);
+      }
+      return;
+    }
+    case "status": {
+      const status = event.status?.toLowerCase();
+      if (status === "waiting" || status === "idle" || status === "done" || status === "completed") {
+        agent.activity = "waiting";
+        agent.isWaiting = true;
+        forwardServerMessage({ type: "agentStatus", id: agent.id, status: "waiting" });
+      } else if (status === "permission" || status === "needs_approval") {
+        agent.activity = "permission";
+        forwardServerMessage({ type: "agentToolPermission", id: agent.id });
+      } else {
+        agent.activity = "typing";
+        agent.isWaiting = false;
+        forwardServerMessage({ type: "agentStatus", id: agent.id, status: "active" });
+      }
+      return;
+    }
+    case "session_end":
+      handleFileRemoved(file);
+      return;
+  }
 }

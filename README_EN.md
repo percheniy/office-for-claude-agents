@@ -218,6 +218,18 @@ npm start
 
 <p>If standard directories are missing, the app still starts and explicitly shows in the left sidebar which paths were checked and how to override them.</p>
 
+<h3>OpenCode, Copilot, and other CLI sources</h3>
+
+<p>Connect local JSONL exports or hook events without cloud APIs:</p>
+
+<pre><code class="language-bash">PIXEL_AGENTS_OPENCODE_SESSION_DIR=/path/to/opencode-jsonl \
+PIXEL_AGENTS_COPILOT_SESSION_DIR=/path/to/copilot-session-state \
+PIXEL_AGENTS_EVENTS_DIR=/path/to/generic-agent-events \
+npm start
+</code></pre>
+
+<p>The adapters read local JSONL files or hook/event exports: Copilot uses <code>events.jsonl</code>, while OpenCode uses JSONL in the configured directory. OpenCode's native SQLite database is intentionally not read directly, avoiding a new dependency and database-write risk. OpenCode, Gemini, Kimi, Qwen, DeepSeek, and future tools can emit normalized JSONL events; supported kinds are <code>session_start</code>, <code>tool_start</code>, <code>tool_end</code>, <code>message</code>, <code>stats</code>, <code>status</code>, <code>parent</code>, and <code>session_end</code>. Unknown provider names are preserved and shown as badges.</p>
+
 <pre><code class="language-json">{
   "sessionSources": {
     "claudeProjectsDir": "/absolute/path/to/claude/projects",
