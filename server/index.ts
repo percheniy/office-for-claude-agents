@@ -12,6 +12,7 @@ import crypto from "crypto";
 import { JsonlWatcher } from "./watcher.js";
 import { CodexJsonlWatcher } from "./codexWatcher.js";
 import { CopilotSource, GenericHookSource, OpenCodeSource } from "./genericSource.js";
+import { resolveSessionPaths } from "./sessionPaths.js";
 import {
   loadCharacterSprites,
   loadWallTiles,
@@ -75,8 +76,6 @@ import {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "9876", 10);
 const security = getServerSecurityConfig();
-const CLAUDE_PROJECTS_DIR = join(homedir(), ".claude", "projects");
-const CODEX_SESSIONS_DIR = join(homedir(), ".codex", "sessions");
 
 // ── Assets ──────────────────────────────────────────────────────────────
 
@@ -94,6 +93,7 @@ const floorTiles = loadFloorTiles(assetsRoot);
 // ── Config ──────────────────────────────────────────────────────────────
 
 const config = loadConfig();
+const sessionPaths = resolveSessionPaths(process.env, config.sessionSources);
 console.log(`[Server] Config loaded: soundEnabled=${config.soundEnabled}, externalDirs=${config.externalAssetDirectories.length}`);
 
 // ── Furniture & Layout ──────────────────────────────────────────────────
@@ -121,8 +121,8 @@ if (previousAgentState) {
 
 // ── Watchers ────────────────────────────────────────────────────────────
 
-const claudeWatcher = new JsonlWatcher();
-const watchers = [claudeWatcher, new CodexJsonlWatcher(), new OpenCodeSource(), new CopilotSource(), new GenericHookSource()];
+const claudeWatcher = new JsonlWatcher(sessionPaths.claudeProjectsDir);
+const watchers = [claudeWatcher, new CodexJsonlWatcher(sessionPaths.codexSessionsDir, sessionPaths.codexArchivedSessionsDir), new OpenCodeSource(), new CopilotSource(), new GenericHookSource()];
 
 // ── Initialize agent manager ────────────────────────────────────────────
 
@@ -177,7 +177,7 @@ function cleanupSpawnedClaudes(): void {
 }
 
 function openSessionsFolder(): void {
-  const dirs = [CLAUDE_PROJECTS_DIR, CODEX_SESSIONS_DIR].filter((dir) => existsSync(dir));
+  const dirs = [sessionPaths.claudeProjectsDir, sessionPaths.codexSessionsDir, sessionPaths.codexArchivedSessionsDir].filter((dir) => existsSync(dir));
   if (dirs.length === 0) {
     openPath(join(homedir(), ".claude"));
     return;

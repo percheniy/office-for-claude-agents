@@ -30,6 +30,7 @@
     "test:providers": "tsx scripts/test-provider-adapters.ts",
     "test:session": "tsx scripts/test-session-identity.ts",
     "test:control": "tsx scripts/test-agent-control.ts",
+    "test:paths": "tsx scripts/test-session-paths.ts",
     "test:model-info": "tsx scripts/test-model-info.ts",
     "import-tileset": "tsx scripts/import-tileset.ts",
     "extract-furniture": "tsx scripts/extract-furniture.ts"

@@ -1,12 +1,10 @@
 import { watch } from "chokidar";
-import { statSync, readdirSync, readFileSync } from "fs";
+import { statSync, readdirSync, readFileSync, existsSync } from "fs";
 import { join, basename, dirname } from "path";
 import { homedir } from "os";
 import { EventEmitter } from "events";
 import type { WatchedFile } from "./sourceTypes.js";
 import { compactName, readNewLines } from "./utils.js";
-
-const CLAUDE_PROJECTS_DIR = join(homedir(), ".claude", "projects");
 const ACTIVE_THRESHOLD_MS = 1_800_000; // 30 minutes — sessions survive long builds and user idle
 const POLL_INTERVAL_MS = 3000; // 3 seconds — reduces I/O pressure from statSync on tracked files
 const RESCAN_INTERVAL_MS = 15_000; // 15 seconds — periodic rescan to catch files chokidar missed (new dirs)
@@ -36,6 +34,7 @@ function extractProjectName(projectDirName: string): string {
 }
 
 export class JsonlWatcher extends EventEmitter {
+  private readonly projectsDir: string;
   private files = new Map<string, WatchedFile>();
   private watcher: ReturnType<typeof watch> | null = null;
   private pollInterval: ReturnType<typeof setInterval> | null = null;
@@ -43,15 +42,21 @@ export class JsonlWatcher extends EventEmitter {
   private pinnedPaths = new Set<string>();
   private suspendedPaths = new Set<string>(); // auto-suspended files — blocked from re-add
 
+  constructor(projectsDir = join(homedir(), ".claude", "projects")) {
+    super();
+    this.projectsDir = projectsDir;
+  }
+
   start(): void {
     this.scanForActiveFiles();
 
-    this.watcher = watch(CLAUDE_PROJECTS_DIR, {
+    if (existsSync(this.projectsDir)) {
+      this.watcher = watch(this.projectsDir, {
       ignoreInitial: true,
       depth: 5, // Need depth 5 to catch subagent files: projectDir/sessionId/subagents/agent.jsonl
       ignored: (path: string) => {
         // Always allow directories (needed for traversal)
-        if (path === CLAUDE_PROJECTS_DIR) return false;
+        if (path === this.projectsDir) return false;
         const s = statSync(path, { throwIfNoEntry: false });
         if (!s) return true;
         if (s.isDirectory()) return false;
@@ -61,24 +66,25 @@ export class JsonlWatcher extends EventEmitter {
       },
       usePolling: false,
       awaitWriteFinish: false,
-    });
+      });
 
-    this.watcher.on("add", (filePath: string) => {
-      if (filePath.endsWith(".jsonl")) {
-        this.addFile(filePath);
-      }
-    });
+      this.watcher.on("add", (filePath: string) => {
+        if (filePath.endsWith(".jsonl")) {
+          this.addFile(filePath);
+        }
+      });
 
     // Re-add previously dropped files when they get new writes
-    this.watcher.on("change", (filePath: string) => {
-      if (filePath.endsWith(".jsonl") && !this.files.has(filePath)) {
+      this.watcher.on("change", (filePath: string) => {
+        if (filePath.endsWith(".jsonl") && !this.files.has(filePath)) {
         // Unsuspend on real new activity (file is being written to again)
         if (this.suspendedPaths.has(filePath)) {
           this.suspendedPaths.delete(filePath);
         }
-        this.addFile(filePath);
-      }
-    });
+          this.addFile(filePath);
+        }
+      });
+    }
 
     this.pollInterval = setInterval(() => this.pollFiles(), POLL_INTERVAL_MS);
 
@@ -95,10 +101,10 @@ export class JsonlWatcher extends EventEmitter {
 
   private scanForActiveFiles(): void {
     try {
-      const dirs = readdirSync(CLAUDE_PROJECTS_DIR, { withFileTypes: true });
+      const dirs = readdirSync(this.projectsDir, { withFileTypes: true });
       for (const dir of dirs) {
         if (!dir.isDirectory()) continue;
-        const dirPath = join(CLAUDE_PROJECTS_DIR, dir.name);
+        const dirPath = join(this.projectsDir, dir.name);
         try {
           const files = readdirSync(dirPath);
           for (const f of files) {

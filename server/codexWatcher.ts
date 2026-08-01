@@ -5,15 +5,13 @@
  */
 
 import { watch } from "chokidar";
-import { statSync, readdirSync, readFileSync } from "fs";
+import { statSync, readdirSync, readFileSync, existsSync } from "fs";
 import { basename, dirname, join } from "path";
 import { homedir } from "os";
 import { EventEmitter } from "events";
 import type { WatchedFile } from "./sourceTypes.js";
 import { compactName, readNewLines } from "./utils.js";
 
-const CODEX_SESSION_ROOT = join(homedir(), ".codex", "sessions");
-const CODEX_ARCHIVE_ROOT = join(homedir(), ".codex", "archived_sessions");
 const ACTIVE_THRESHOLD_MS = 300_000;
 const POLL_INTERVAL_MS = 1000;
 
@@ -108,26 +106,35 @@ function scanJsonlFiles(root: string): string[] {
 }
 
 export class CodexJsonlWatcher extends EventEmitter {
+  private readonly sessionRoot: string;
+  private readonly archiveRoot: string;
   private files = new Map<string, WatchedFile>();
   private sessionIds = new Map<string, string>();
   private watcher: ReturnType<typeof watch> | null = null;
   private pollInterval: ReturnType<typeof setInterval> | null = null;
 
+  constructor(sessionRoot = join(homedir(), ".codex", "sessions"), archiveRoot = join(homedir(), ".codex", "archived_sessions")) {
+    super();
+    this.sessionRoot = sessionRoot;
+    this.archiveRoot = archiveRoot;
+  }
+
   start(): void {
     this.scanForActiveFiles();
 
-    this.watcher = watch([CODEX_SESSION_ROOT, CODEX_ARCHIVE_ROOT], {
+    const roots = [this.sessionRoot, this.archiveRoot].filter((root) => existsSync(root));
+    if (roots.length > 0) this.watcher = watch(roots, {
       ignoreInitial: true,
       depth: 6,
     });
 
-    this.watcher.on("add", (filePath: string) => {
+    this.watcher?.on("add", (filePath: string) => {
       if (filePath.endsWith(".jsonl")) {
         this.addFile(filePath);
       }
     });
 
-    this.watcher.on("change", (filePath: string) => {
+    this.watcher?.on("change", (filePath: string) => {
       if (filePath.endsWith(".jsonl") && !this.files.has(filePath)) {
         this.addFile(filePath);
       }
@@ -143,7 +150,7 @@ export class CodexJsonlWatcher extends EventEmitter {
 
   private scanForActiveFiles(): void {
     const pending: WatchedFile[] = [];
-    for (const root of [CODEX_SESSION_ROOT, CODEX_ARCHIVE_ROOT]) {
+    for (const root of [this.sessionRoot, this.archiveRoot]) {
       for (const filePath of scanJsonlFiles(root)) {
         try {
           const stat = statSync(filePath);

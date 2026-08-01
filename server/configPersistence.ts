@@ -15,6 +15,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "fs";
 import { homedir } from "os";
 import { join, dirname } from "path";
+import type { SessionSourcesConfig } from "./sessionPaths.js";
 
 const CONFIG_DIR = join(homedir(), ".pixel-agents");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
@@ -32,6 +33,7 @@ export interface PixelAgentsConfig {
   githubTasks: GithubTasksConfig;
   daemons: DaemonConfig[];
   shareProxyUrl: string;  // e.g., "https://gridchins.ru/office" — public URL for share links
+  sessionSources: SessionSourcesConfig;
 }
 
 export interface GithubTaskStateConfig {
@@ -77,6 +79,7 @@ const DEFAULT_CONFIG: PixelAgentsConfig = {
       gates: [],
     },
   },
+  sessionSources: {},
 };
 
 function normalizeGithubTasksConfig(config: Partial<GithubTasksConfig> | undefined): GithubTasksConfig {
@@ -138,6 +141,7 @@ export function loadConfig(): PixelAgentsConfig {
         : [],
       daemons: Array.isArray((parsed as any).daemons) ? (parsed as any).daemons : [],
       shareProxyUrl: typeof (parsed as any).shareProxyUrl === "string" ? (parsed as any).shareProxyUrl : "",
+      sessionSources: normalizeSessionSources((parsed as Partial<PixelAgentsConfig>).sessionSources),
       githubTasks: normalizeGithubTasksConfig(parsed.githubTasks),
     };
     return cachedConfig;
@@ -146,6 +150,16 @@ export function loadConfig(): PixelAgentsConfig {
     cachedConfig = { ...DEFAULT_CONFIG };
     return cachedConfig;
   }
+}
+
+function normalizeSessionSources(value: unknown): SessionSourcesConfig {
+  if (!value || typeof value !== "object") return {};
+  const raw = value as Record<string, unknown>;
+  return {
+    claudeProjectsDir: typeof raw.claudeProjectsDir === "string" ? raw.claudeProjectsDir : undefined,
+    codexSessionsDir: typeof raw.codexSessionsDir === "string" ? raw.codexSessionsDir : undefined,
+    codexArchivedSessionsDir: typeof raw.codexArchivedSessionsDir === "string" ? raw.codexArchivedSessionsDir : undefined,
+  };
 }
 
 export function saveConfig(config: PixelAgentsConfig): void {
