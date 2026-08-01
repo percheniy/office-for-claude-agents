@@ -172,6 +172,17 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
 
 <p>Automatically installs dependencies, builds the project, and opens the browser at <code>http://localhost:9876</code>.</p>
 
+<h3>Control server security</h3>
+
+<p>By default the server binds to <code>127.0.0.1</code> only. To explicitly enable remote mode, set a bind address and a long random token:</p>
+
+<pre><code class="language-bash">PIXEL_AGENTS_BIND_HOST=0.0.0.0 \
+PIXEL_AGENTS_AUTH_TOKEN='replace-with-a-long-random-token' \
+npm start
+</code></pre>
+
+<p>Remote mode refuses to start without <code>PIXEL_AGENTS_AUTH_TOKEN</code>. Open the UI with <code>?auth=TOKEN</code>; use HTTPS or an SSH tunnel. Permission-bypassed Claude startup is available only to loopback clients.</p>
+
 <details>
   <summary>From source</summary>
 

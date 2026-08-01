@@ -23,6 +23,11 @@ import {
 import { getCachedPipelineIssues } from "./githubPoller.js";
 import type { LoadedFurnitureAssets } from "./assetLoader.js";
 import type { DaemonHub } from "./daemonHub.js";
+import {
+  authorizeWebSocketRequest,
+  canUsePermissionBypass,
+  type ServerSecurityConfig,
+} from "./security.js";
 
 // ── Shared state ─────────────────────────────────────────────────────────
 
@@ -197,6 +202,7 @@ export function setupConnectionHandler(
   wss: WebSocketServer,
   deps: {
     PORT: number;
+    security: ServerSecurityConfig;
     assetsRoot: string;
     currentLayout: { value: Record<string, unknown> | null };
     layoutWatcher: { markOwnWrite: () => void };
@@ -212,18 +218,18 @@ export function setupConnectionHandler(
     (ws as unknown as Record<string, boolean>).__isAlive = true;
     ws.on("pong", () => { (ws as unknown as Record<string, boolean>).__isAlive = true; });
 
-    const wsUrl = new URL(req.url || "/", `http://${req.headers.host}`);
-    const shareToken = wsUrl.searchParams.get("share");
-    let isReadOnly = false;
-    if (shareToken) {
-      if (!isShareTokenValid(shareToken)) {
-        ws.close(4001, "Share token expired");
-        return;
-      }
-      isReadOnly = true;
+    const authorization = authorizeWebSocketRequest(req, deps.security, isShareTokenValid);
+    if (!authorization.authorized) {
+      ws.close(4003, authorization.reason || "Unauthorized");
+      return;
     }
+    const isReadOnly = authorization.readOnly;
     (ws as any).__readOnly = isReadOnly;
     (ws as any).__host = req.headers.host;
+    (ws as any).__canUsePermissionBypass = canUsePermissionBypass(
+      deps.security.remoteMode,
+      req.socket.remoteAddress,
+    );
 
     clients.add(ws);
 
@@ -324,7 +330,11 @@ export function setupConnectionHandler(
         } else if (msg.type === "openClaude") {
           deps.launchClaude(false);
         } else if (msg.type === "openClaudeBypass") {
-          deps.launchClaude(true);
+          if ((ws as any).__canUsePermissionBypass) {
+            deps.launchClaude(true);
+          } else {
+            console.warn("[Server] Blocked permission-bypassed Claude launch from a non-loopback client");
+          }
         } else if (msg.type === "requestAgentDetails") {
           const requestedId = msg.id as number;
           for (const agent of agents.values()) {

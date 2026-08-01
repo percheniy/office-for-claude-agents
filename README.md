@@ -174,6 +174,17 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
 
 <p>Автоматически установит зависимости, соберёт проект и откроет браузер на <code>http://localhost:9876</code>.</p>
 
+<h3>Безопасность control server</h3>
+
+<p>По умолчанию сервер слушает только <code>127.0.0.1</code>. Для явного remote-режима задайте bind-адрес и длинный случайный токен:</p>
+
+<pre><code class="language-bash">PIXEL_AGENTS_BIND_HOST=0.0.0.0 \
+PIXEL_AGENTS_AUTH_TOKEN='replace-with-a-long-random-token' \
+npm start
+</code></pre>
+
+<p>Без <code>PIXEL_AGENTS_AUTH_TOKEN</code> remote-режим не запускается. Откройте UI с параметром <code>?auth=TOKEN</code>; используйте HTTPS или SSH-туннель. Запуск Claude с bypass-разрешений разрешён только локальному loopback-клиенту.</p>
+
 <details>
   <summary>Из исходников</summary>
 

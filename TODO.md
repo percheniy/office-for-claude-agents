@@ -4,7 +4,7 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 
 ## P0 — protect users and their work
 
-- [ ] [#4](https://github.com/percheniy/office-for-claude-agents/issues/4) Bind the control server to loopback by default. Require explicit remote mode and authentication before exposing WebSocket commands. Never allow remote callers to launch Claude with `--dangerously-skip-permissions`.
+- [x] [#4](https://github.com/percheniy/office-for-claude-agents/issues/4) Bind the control server to loopback by default. Require explicit remote mode and authentication before exposing WebSocket commands. Never allow remote callers to launch Claude with `--dangerously-skip-permissions`.
 - [ ] [#1](https://github.com/percheniy/office-for-claude-agents/issues/1) Preserve custom layouts during bundled layout upgrades. Create a timestamped backup and provide a visible recovery path before replacing user data.
 - [ ] [#6](https://github.com/percheniy/office-for-claude-agents/issues/6) Never terminate an unknown process that occupies the configured port. Verify PID ownership and keep PID state per port.
 

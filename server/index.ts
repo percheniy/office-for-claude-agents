@@ -1,5 +1,6 @@
 import express from "express";
 import { createServer } from "http";
+import type { IncomingMessage } from "http";
 import { WebSocketServer } from "ws";
 import { join, dirname } from "path";
 import { homedir } from "os";
@@ -22,6 +23,7 @@ import { openPath, findPidsOnPort } from "./platform.js";
 import { DaemonHub } from "./daemonHub.js";
 import { isShareTokenValid } from "./shareManager.js";
 import { stopShareCleanup } from "./shareManager.js";
+import { authorizeWebSocketRequest, getServerSecurityConfig } from "./security.js";
 import {
   loadAllFurniture,
   loadLayoutWithRevision,
@@ -60,6 +62,7 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "9876", 10);
+const security = getServerSecurityConfig();
 const CLAUDE_PROJECTS_DIR = join(homedir(), ".claude", "projects");
 const CODEX_SESSIONS_DIR = join(homedir(), ".codex", "sessions");
 
@@ -211,7 +214,12 @@ app.use(express.static(join(__dirname, "public"), {
 // ── HTTP & WebSocket server ─────────────────────────────────────────────
 
 const server = createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({
+  server,
+  verifyClient: (info: { origin: string; secure: boolean; req: IncomingMessage }) => {
+    return authorizeWebSocketRequest(info.req, security, isShareTokenValid).authorized;
+  },
+});
 
 wss.on("error", (err) => {
   console.error(`[Server] WebSocket server error: ${err.message}`);
@@ -259,6 +267,7 @@ daemonHub.on("message", (msg) => {
 
 setupConnectionHandler(wss, {
   PORT,
+  security,
   assetsRoot,
   currentLayout,
   layoutWatcher,
@@ -316,8 +325,8 @@ function startServer(retries = 1): void {
     // No PID file or unreadable
   }
 
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Pixel Agents server running at http://localhost:${PORT}`);
+  server.listen(PORT, security.bindHost, () => {
+    console.log(`Pixel Agents server running at http://localhost:${PORT} (bound to ${security.bindHost})`);
     console.log(`Watching ~/.claude/projects and ~/.codex/sessions for active sessions...`);
 
     try {

@@ -16,6 +16,10 @@ function getShareToken(): string | null {
   return match ? match[1] : null;
 }
 
+function getAuthToken(): string | null {
+  return new URLSearchParams(window.location.search).get("auth");
+}
+
 export function isShareMode(): boolean {
   return getShareToken() !== null;
 }
@@ -25,7 +29,12 @@ let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function connectWebSocket(): void {
   const token = getShareToken();
-  const wsUrl = token ? `${WS_BASE}?share=${token}` : WS_BASE;
+  const params = new URLSearchParams();
+  if (token) params.set("share", token);
+  const authToken = getAuthToken();
+  if (authToken) params.set("auth", authToken);
+  const query = params.toString();
+  const wsUrl = query ? `${WS_BASE}?${query}` : WS_BASE;
   ws = new WebSocket(wsUrl);
 
   ws.onopen = () => {
