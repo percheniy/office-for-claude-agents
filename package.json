@@ -7,7 +7,7 @@
   },
   "type": "module",
   "bin": {
-    "office-for-claude-agents": "./bin/cli.js"
+    "office-for-claude-agents": "bin/cli.js"
   },
   "files": [
     "dist/",
