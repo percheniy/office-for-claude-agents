@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import type { AgentStats, AgentRoleInfo } from '../hooks/useExtensionMessages.js'
+import { getModelInfo } from '../modelInfo.js'
 
 interface HudScreenProps {
   isOpen: boolean
@@ -34,15 +35,17 @@ function formatCost(dollars: number): string {
 
 interface ModelPricing { inputPerMtok: number; outputPerMtok: number }
 
-function getPricing(model?: string): ModelPricing {
+function getPricing(model?: string): ModelPricing | null {
   const m = (model ?? '').toLowerCase()
   if (m.includes('haiku')) return { inputPerMtok: 0.25, outputPerMtok: 1.25 }
   if (m.includes('sonnet')) return { inputPerMtok: 3, outputPerMtok: 15 }
-  return { inputPerMtok: 15, outputPerMtok: 75 }
+  if (m.includes('opus')) return { inputPerMtok: 15, outputPerMtok: 75 }
+  return null
 }
 
-function estimateCost(stats: AgentStats): number {
+function estimateCost(stats: AgentStats): number | null {
   const pricing = getPricing(stats.model)
+  if (!pricing) return null
   const inputCost = ((stats.totalInputTokens - stats.totalCacheRead) / 1_000_000) * pricing.inputPerMtok
   const cacheCost = (stats.totalCacheRead / 1_000_000) * pricing.inputPerMtok * 0.1
   const outputCost = (stats.totalOutputTokens / 1_000_000) * pricing.outputPerMtok
@@ -65,16 +68,23 @@ export function HudScreen({ isOpen, onClose, agents, agentStats, agentRoles }: H
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const summary = useMemo(() => {
-    let totalInput = 0, totalOutput = 0, totalCacheRead = 0, totalDuration = 0, totalCost = 0, cacheHitSum = 0, cacheHitCount = 0
+    let totalInput = 0, totalOutput = 0, totalCacheRead = 0, totalDuration = 0, totalCost = 0, pricedAgents = 0, cacheHitSum = 0, cacheHitCount = 0
     for (const stats of agentStats.values()) {
       totalInput += stats.totalInputTokens; totalOutput += stats.totalOutputTokens
       totalCacheRead += stats.totalCacheRead; totalDuration += stats.totalDurationMs
-      totalCost += estimateCost(stats); cacheHitSum += stats.cacheHitRate; cacheHitCount++
+      const cost = estimateCost(stats)
+      if (cost !== null) { totalCost += cost; pricedAgents++ }
+      cacheHitSum += stats.cacheHitRate; cacheHitCount++
     }
     const totalTokens = totalInput + totalOutput + totalCacheRead
     const avgCacheHit = cacheHitCount > 0 ? cacheHitSum / cacheHitCount : 0
     const activeCount = [...agents.values()].filter((a) => a.status === 'active' || a.status === undefined).length
-    return { totalTokens, totalCost, totalDuration, activeCount, avgCacheHit }
+    const costLabel = pricedAgents === 0
+      ? '—'
+      : pricedAgents === agentStats.size
+        ? formatCost(totalCost)
+        : `${formatCost(totalCost)} partial`
+    return { totalTokens, costLabel, totalDuration, activeCount, avgCacheHit }
   }, [agentStats, agents])
 
   const rows = useMemo(() => {
@@ -83,7 +93,9 @@ export function HudScreen({ isOpen, onClose, agents, agentStats, agentRoles }: H
       const stats = agentStats.get(id)
       const roleInfo = agentRoles.get(id)
       const contextPct = stats?.currentContextLimit ? Math.min(((stats.currentContextTokens ?? 0) / stats.currentContextLimit) * 100, 100) : 0
-      result.push({ id, name: agent.name, role: roleInfo?.role ?? '-', model: stats?.model ?? '-', input: stats?.totalInputTokens ?? 0, output: stats?.totalOutputTokens ?? 0, cacheHit: stats?.cacheHitRate ?? 0, contextPct, turns: stats?.turnCount ?? 0, durationMs: stats?.totalDurationMs ?? 0 })
+      const modelInfo = getModelInfo(stats?.model)
+      const model = modelInfo ? `${modelInfo.provider} · ${modelInfo.shortName}` : '-'
+      result.push({ id, name: agent.name, role: roleInfo?.role ?? '-', model, input: stats?.totalInputTokens ?? 0, output: stats?.totalOutputTokens ?? 0, cacheHit: stats?.cacheHitRate ?? 0, contextPct, turns: stats?.turnCount ?? 0, durationMs: stats?.totalDurationMs ?? 0 })
     }
     result.sort((a, b) => {
       let cmp = 0
@@ -136,7 +148,7 @@ export function HudScreen({ isOpen, onClose, agents, agentStats, agentRoles }: H
         <div className="flex flex-wrap gap-4 px-3.5 py-2.5 mb-4 border-2 border-pixel-border bg-white/[0.03]">
           {[
             ['Total Tokens', formatTokens(summary.totalTokens)],
-            ['Est. Cost', formatCost(summary.totalCost)],
+            ['Est. Cost', summary.costLabel],
             ['Total Duration', formatDuration(summary.totalDuration)],
             ['Active Agents', String(summary.activeCount)],
             ['Avg Cache Hit', `${Math.round(summary.avgCacheHit)}%`],

@@ -4,7 +4,7 @@
  * See LICENSE-SERGEY-ADDITIONS and NOTICE.
  */
 
-import { getModelShortName } from '../modelInfo.js'
+import { getModelInfo } from '../modelInfo.js'
 
 interface TokenBarProps {
   totalTokens: number
@@ -26,7 +26,7 @@ export function TokenBar({ totalTokens, usageTokens, contextLimit, model, turnCo
 
   const contextTokens = usageTokens ?? totalTokens
   const pct = Math.min((contextTokens / contextLimit) * 100, 100)
-  const modelShort = getModelShortName(model)
+  const modelInfo = getModelInfo(model)
 
   let barColor: string
   if (pct < 50) {
@@ -37,13 +37,13 @@ export function TokenBar({ totalTokens, usageTokens, contextLimit, model, turnCo
     barColor = '#f44336'
   }
 
-  const tooltipText = `${formatNumber(contextTokens)} / ${formatNumber(contextLimit)} tokens in context (${Math.round(pct)}%) | ${formatNumber(totalTokens)} total | ${turnCount} turns`
+  const tooltipText = `${modelInfo ? `${modelInfo.provider}: ${modelInfo.rawName} | ` : ''}${formatNumber(contextTokens)} / ${formatNumber(contextLimit)} tokens in context (${Math.round(pct)}%) | ${formatNumber(totalTokens)} total | ${turnCount} turns`
 
   return (
     <div className="flex items-center gap-1 mt-0.5">
-      {modelShort && (
+      {modelInfo && (
         <span className="text-[10px] leading-none text-pixel-text-dim font-mono tracking-[0.5px] uppercase">
-          {modelShort}
+          {modelInfo.shortName}
         </span>
       )}
       <div
