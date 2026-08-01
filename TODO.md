@@ -16,8 +16,21 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 - [ ] [#3](https://github.com/percheniy/office-for-claude-agents/issues/3) Make TypeScript and ESLint pass, then add focused local tests for parsers, WebSocket permissions, layout migration, and model recognition.
 - [x] Recognize popular model families and preserve readable names for unknown future models. Covered providers: Anthropic, OpenAI/Codex, Google Gemini, Moonshot/Kimi, DeepSeek, Alibaba/Qwen, xAI/Grok, Mistral, Meta/Llama, Cohere, Amazon/Nova, Microsoft/Phi, and Zhipu/GLM.
 
+## Product demand backlog
+
+### P0
+
+1. [ ] [#12](https://github.com/percheniy/office-for-claude-agents/issues/12) Ingest OpenCode, GitHub Copilot, and future agent providers through one `AgentSource` contract and generic local event input.
+2. [ ] [#9](https://github.com/percheniy/office-for-claude-agents/issues/9) Keep tmux and SSH sessions alive, distinguish detached from dead agents, and safely reattach to the same process.
+3. [ ] [#8](https://github.com/percheniy/office-for-claude-agents/issues/8) After security issue [#4](https://github.com/percheniy/office-for-claude-agents/issues/4), securely send prompts, approve or deny permissions, interrupt work, and focus the owning session from the browser.
+
+### P1
+
+4. [ ] [#11](https://github.com/percheniy/office-for-claude-agents/issues/11) Add a session picker with provider, project, state, history, and safe resume.
+5. [ ] [#10](https://github.com/percheniy/office-for-claude-agents/issues/10) Load persistent custom character packs with validation and bundled fallback.
+
 ## Non-goals
 
-- No provider SDKs or model APIs: model data continues to come from existing Claude and Codex session logs.
+- No provider cloud APIs or paid SDKs: session data comes from local transcripts, adapters, or hooks.
 - No exhaustive version registry: unknown future model names must remain visible through the generic fallback.
 - No architecture rewrite or new framework.
