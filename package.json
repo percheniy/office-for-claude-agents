@@ -1,6 +1,10 @@
 {
   "name": "office-for-claude-agents",
   "version": "0.2.2",
+  "author": {
+    "name": "Sergey Gridchin",
+    "url": "https://github.com/percheniy"
+  },
   "type": "module",
   "bin": {
     "office-for-claude-agents": "./bin/cli.js"
@@ -38,7 +42,7 @@
     "@types/pngjs": "^6.0.5",
     "@types/ws": "^8.5.0",
     "concurrently": "^9.0.0",
-    "esbuild": "^0.27.0",
+    "esbuild": "^0.28.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.0"
   }

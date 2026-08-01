@@ -33,7 +33,10 @@ please retain attribution in a visible and reasonable place, such as a file head
 or source comment:
 
 Original author of this addition: Sergey Gridchin
-Author link: https://t.me/segagridchin
+Author link: https://github.com/percheniy
+
+Do not remove or hide this notice. Do not add Sergey Gridchin as a Git co-author
+unless he actually contributed to that specific commit.
 
 This attribution request does not replace, limit, or remove any rights or notices
 required by the original MIT License for upstream code.

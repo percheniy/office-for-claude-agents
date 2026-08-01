@@ -294,14 +294,10 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
   <li>Share links require an SSH tunnel to a public server for external access; tokens are stored in memory and reset on server restart.</li>
 </ul>
 
-<h2>Star History</h2>
+<h2>GitHub Stars</h2>
 
 <a href="https://www.star-history.com/?repos=percheniy%2Foffice-for-claude-agents&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=percheniy/office-for-claude-agents&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=percheniy/office-for-claude-agents&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=percheniy/office-for-claude-agents&type=date&legend=top-left" />
- </picture>
+  <img alt="GitHub stars" src="https://img.shields.io/github/stars/percheniy/office-for-claude-agents?style=for-the-badge&logo=github" />
 </a>
 
 <h2>Credits</h2>
@@ -311,6 +307,8 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
   <li>Pablo De Lucca for standalone groundwork</li>
   <li>Sergey Gridchin for public standalone additions, Codex support, task sidebar generalization, richer inspection, and release packaging</li>
 </ul>
+
+<p>Copyright and project attribution: <a href="https://github.com/percheniy">Sergey Gridchin (@percheniy)</a>. Keep the notices in <code>LICENSE</code> and <code>NOTICE</code> when copying or modifying covered additions.</p>
 
 <details>
   <summary>License</summary>
