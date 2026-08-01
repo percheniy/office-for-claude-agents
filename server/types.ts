@@ -1,5 +1,6 @@
 import type { GithubTasksConfig } from "./configPersistence.js";
 import type { AgentProvider } from "./sourceTypes.js";
+import type { AgentSessionState } from "./sessionIdentity.js";
 
 // Agent activity states
 export type AgentActivity = "idle" | "typing" | "reading" | "waiting" | "permission";
@@ -69,6 +70,12 @@ export interface TrackedAgent {
   parentAgentId?: number;    // resolved numeric ID of the parent agent
   teamName?: string;         // team name from TeamCreate (e.g., "pipeline-debate")
   isTeamLead?: boolean;      // true if this agent is the team lead (no agentName in team)
+  sessionState?: AgentSessionState;
+  sessionHost?: string;
+  processPid?: number;
+  processStartTime?: string;
+  tmuxTarget?: string;
+  tmuxAttached?: boolean;
 }
 
 // Messages sent from server to client via WebSocket
@@ -76,7 +83,9 @@ export interface TrackedAgent {
 export type ServerMessage =
   | { type: "agentCreated"; id: number; folderName: string; provider?: AgentProvider; parentAgentId?: number; teamName?: string; isTeamLead?: boolean }
   | { type: "agentClosed"; id: number }
-  | { type: "existingAgents"; agents: number[]; folderNames: Record<number, string>; providers?: Record<number, string>; agentMeta?: Record<number, { palette?: number; hueShift?: number; seatId?: string }>; parentAgentIds?: Record<number, number>; teamNames?: Record<number, string>; isTeamLeads?: Record<number, boolean> }
+  | { type: "existingAgents"; agents: number[]; folderNames: Record<number, string>; providers?: Record<number, string>; sessionStates?: Record<number, { state: AgentSessionState; host: string; pid?: number; processStartTime?: string; tmuxTarget?: string; tmuxAttached?: boolean }>; agentMeta?: Record<number, { palette?: number; hueShift?: number; seatId?: string }>; parentAgentIds?: Record<number, number>; teamNames?: Record<number, string>; isTeamLeads?: Record<number, boolean> }
+  | { type: "agentSessionState"; id: number; state: AgentSessionState; host: string; pid?: number; processStartTime?: string; tmuxTarget?: string; tmuxAttached?: boolean; reason?: string }
+  | { type: "agentSessionNotice"; id: number; message: string }
   | { type: "agentToolStart"; id: number; toolId: string; status: string }
   | { type: "agentToolDone"; id: number; toolId: string }
   | { type: "agentToolsClear"; id: number }
@@ -120,6 +129,7 @@ export type ClientMessage =
   | { type: "removeExternalAssetDirectory"; path: string }
   | { type: "openClaude" }
   | { type: "openClaudeBypass" }
+  | { type: "reattachAgent"; id: number }
   | { type: "requestAgentDetails"; id: number }
   | { type: "requestAgentConversation"; id: number }
   | { type: "setAgentRole"; id: number; role: string }

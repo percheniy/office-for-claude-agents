@@ -55,6 +55,17 @@ export interface AgentStats {
   cacheHitRate: number
 }
 
+export type AgentSessionState = 'live' | 'detached' | 'stale' | 'dead'
+
+export interface AgentSessionInfo {
+  state: AgentSessionState
+  host: string
+  pid?: number
+  processStartTime?: string
+  tmuxTarget?: string
+  tmuxAttached?: boolean
+}
+
 export interface WorkspaceFolder {
   name: string
   path: string
@@ -139,6 +150,7 @@ export interface ExtensionMessageState {
   layoutWasReset: boolean
   layoutBackupFileName: string | null
   agentProviders: Map<number, string>
+  agentSessions: Map<number, AgentSessionInfo>
   loadedAssets?: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> }
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]
@@ -263,6 +275,15 @@ export function useExtensionMessages(
         agentState.setAgentProviders((prev) => {
           const next = new Map(prev)
           for (const id of incoming) next.set(id, incomingProviders[id] || 'claude')
+          return next
+        })
+        const incomingSessions = (msg.sessionStates || {}) as Record<number, AgentSessionInfo>
+        agentState.setAgentSessions((prev) => {
+          const next = new Map(prev)
+          for (const id of incoming) {
+            const session = incomingSessions[id]
+            if (session) next.set(id, session)
+          }
           return next
         })
         const parentAgentIds = (msg.parentAgentIds || {}) as Record<number, number>
@@ -515,6 +536,7 @@ export function useExtensionMessages(
     layoutWasReset,
     layoutBackupFileName,
     agentProviders: agentState.agentProviders,
+    agentSessions: agentState.agentSessions,
     loadedAssets: assetState.loadedAssets,
     workspaceFolders: assetState.workspaceFolders,
     externalAssetDirectories: assetState.externalAssetDirectories,

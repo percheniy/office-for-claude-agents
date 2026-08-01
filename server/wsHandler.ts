@@ -134,11 +134,22 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
   const agentMeta: Record<number, { palette?: number; hueShift?: number; seatId?: string }> = {};
   const parentAgentIds: Record<number, number> = {};
   const providers: Record<number, string> = {};
+  const sessionStates: Record<number, { state: import("./sessionIdentity.js").AgentSessionState; host: string; pid?: number; processStartTime?: string; tmuxTarget?: string; tmuxAttached?: boolean }> = {};
   const teamNames: Record<number, string> = {};
   const isTeamLeads: Record<number, boolean> = {};
   for (const a of agentList) {
     folderNames[a.id] = a.projectName;
     providers[a.id] = a.provider;
+    if (a.sessionState && a.sessionHost) {
+      sessionStates[a.id] = {
+        state: a.sessionState,
+        host: a.sessionHost,
+        pid: a.processPid,
+        processStartTime: a.processStartTime,
+        tmuxTarget: a.tmuxTarget,
+        tmuxAttached: a.tmuxAttached,
+      };
+    }
     if (a.parentAgentId !== undefined) {
       parentAgentIds[a.id] = a.parentAgentId;
     }
@@ -158,7 +169,7 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
       }
     }
   }
-  ws.send(JSON.stringify({ type: "existingAgents", agents: agentIds, folderNames, providers, agentMeta, parentAgentIds, teamNames, isTeamLeads }));
+  ws.send(JSON.stringify({ type: "existingAgents", agents: agentIds, folderNames, providers, sessionStates, agentMeta, parentAgentIds, teamNames, isTeamLeads }));
 
   for (const a of agentList) {
     ws.send(JSON.stringify(buildAgentStatsMessage(a)));
@@ -217,6 +228,7 @@ export function setupConnectionHandler(
     layoutWatcher: { markOwnWrite: () => void };
     restoreLatestLayoutBackup: () => { layout: Record<string, unknown>; backupFileName: string } | null;
     launchClaude: (bypass: boolean) => void;
+    reattachAgentSession: (id: number) => void;
     openSessionsFolder: () => void;
     testAgentIds: Set<number>;
     testAgentData: Map<number, { folderName: string; role: string; parentAgentId?: number; model: string }>;
@@ -353,6 +365,8 @@ export function setupConnectionHandler(
           } else {
             console.warn("[Server] Blocked permission-bypassed Claude launch from a non-loopback client");
           }
+        } else if (msg.type === "reattachAgent") {
+          deps.reattachAgentSession(Number(msg.id));
         } else if (msg.type === "requestAgentDetails") {
           const requestedId = msg.id as number;
           for (const agent of agents.values()) {

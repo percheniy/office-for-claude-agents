@@ -9,6 +9,7 @@ import { processCodexTranscriptLine, cleanupCodexParserState } from "./codexPars
 import { findPreviousAgent, type PersistedAgentState } from "./agentPersistence.js";
 import type { JsonlWatcher } from "./watcher.js";
 import { parseGenericAgentEvent } from "./genericParser.js";
+import { inspectAgentSession, reattachTmuxSession, type AgentSessionIdentity } from "./sessionIdentity.js";
 
 // ── Context window limits ─────────────────────────────────────────────────
 const MODEL_CONTEXT_LIMITS: Record<string, number> = {
@@ -557,6 +558,59 @@ export function handleFileAdded(file: WatchedFile): void {
       broadcast({ type: "agentStatus", id: agent.id, status: "waiting" });
     }
   }, 1000);
+}
+
+function sessionIdentityChanged(agent: TrackedAgent, identity: AgentSessionIdentity): boolean {
+  return agent.sessionState !== identity.state
+    || agent.sessionHost !== identity.host
+    || agent.processPid !== identity.pid
+    || agent.processStartTime !== identity.processStartTime
+    || agent.tmuxTarget !== identity.tmuxTarget
+    || agent.tmuxAttached !== identity.tmuxAttached;
+}
+
+export function refreshAgentSessionStates(): void {
+  for (const agent of agents.values()) {
+    const identity = inspectAgentSession({
+      provider: agent.provider,
+      sessionId: agent.sessionId,
+      projectDir: agent.projectDir,
+      transcriptPath: agent.jsonlFile,
+    });
+    if (!sessionIdentityChanged(agent, identity)) continue;
+    agent.sessionState = identity.state;
+    agent.sessionHost = identity.host;
+    agent.processPid = identity.pid;
+    agent.processStartTime = identity.processStartTime;
+    agent.tmuxTarget = identity.tmuxTarget;
+    agent.tmuxAttached = identity.tmuxAttached;
+    broadcast({
+      type: "agentSessionState",
+      id: agent.id,
+      state: identity.state,
+      host: identity.host,
+      pid: identity.pid,
+      processStartTime: identity.processStartTime,
+      tmuxTarget: identity.tmuxTarget,
+      tmuxAttached: identity.tmuxAttached,
+      reason: identity.reason,
+    });
+  }
+}
+
+export function reattachAgentSession(id: number): void {
+  const agent = [...agents.values()].find((candidate) => candidate.id === id);
+  if (!agent) return;
+  if (!agent.tmuxTarget || (agent.sessionState !== "detached" && agent.sessionState !== "live")) {
+    broadcast({ type: "agentSessionNotice", id, message: "No live tmux pane is available for this agent." });
+    return;
+  }
+  const result = reattachTmuxSession(agent.tmuxTarget);
+  if (!result.ok) {
+    broadcast({ type: "agentSessionNotice", id, message: result.reason || "Reattach failed." });
+    return;
+  }
+  broadcast({ type: "agentSessionNotice", id, message: `Opened terminal for ${agent.tmuxTarget}.` });
 }
 
 export function handleFileRemoved(file: WatchedFile): void {

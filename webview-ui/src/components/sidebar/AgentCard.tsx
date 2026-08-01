@@ -5,7 +5,7 @@
  */
 
 import type { OfficeState } from '../../office/engine/officeState.js'
-import type { AgentStats, AgentRoleInfo, SubagentCharacter } from '../../hooks/useExtensionMessages.js'
+import type { AgentSessionInfo, AgentStats, AgentRoleInfo, SubagentCharacter } from '../../hooks/useExtensionMessages.js'
 import type { ToolActivity } from '../../office/types.js'
 import { RoleBadge } from '../RoleBadge.js'
 import { TokenBar } from '../TokenBar.js'
@@ -112,6 +112,8 @@ export interface AgentCardProps {
   agentRoles: Map<number, AgentRoleInfo>
   agentTeamInfo: Map<number, { teamName?: string; isTeamLead?: boolean }>
   agentProvider: string
+  agentSession?: AgentSessionInfo
+  onReattachAgent: (id: number) => void
   subagentCharacters: SubagentCharacter[]
   subsByParent: Map<number, SubagentCharacter[]>
   subagentTools: Record<number, Record<string, ToolActivity[]>>
@@ -127,6 +129,8 @@ export function AgentCard({
   agentRoles,
   agentTeamInfo,
   agentProvider,
+  agentSession,
+  onReattachAgent,
   subagentCharacters: _subagentCharacters,
   subsByParent,
   subagentTools,
@@ -170,8 +174,16 @@ export function AgentCard({
           <span className="text-[10px] px-1 font-bold uppercase tracking-[0.4px] leading-[14px] bg-white/[0.08] text-white/60 border border-white/[0.15]">
             {agentProvider}
           </span>
+          {agentSession && <span className="text-[10px] px-1 font-bold uppercase tracking-[0.4px] leading-[14px] bg-white/[0.04] text-white/45 border border-white/[0.1]" title={`${agentSession.host}${agentSession.pid ? ` · PID ${agentSession.pid}` : ''}`}>
+            {agentSession.state}
+          </span>}
           {roleInfo?.role && <span className="ml-auto"><RoleBadge role={roleInfo.role} colors={roleInfo.colors} /></span>}
         </div>
+        {agentSession?.tmuxTarget && (agentSession.state === 'detached' || agentSession.state === 'live') && (
+          <button onClick={(event) => { event.stopPropagation(); onReattachAgent(id) }} className="text-[11px] px-1.5 py-0.5 mt-0.5 bg-pixel-btn border border-pixel-border text-pixel-text-dim hover:bg-pixel-btn-hover">
+            Reattach tmux
+          </button>
+        )}
         <div className="text-[14px] overflow-hidden text-ellipsis whitespace-nowrap mb-[3px]"
           style={{ color: hasPermission ? 'var(--pixel-status-permission)' : isActive ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}>
           {statusLabel}

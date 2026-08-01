@@ -56,6 +56,8 @@ import {
   handleFileAdded,
   handleFileRemoved,
   handleWatchedLine,
+  refreshAgentSessionStates,
+  reattachAgentSession,
 } from "./agentManager.js";
 import { resolveTeamParent } from "./agentManager.js";
 import { startPolling as startGithubPolling, stopPolling as stopGithubPolling } from "./githubPoller.js";
@@ -284,6 +286,7 @@ setupConnectionHandler(wss, {
   layoutWatcher,
   restoreLatestLayoutBackup,
   launchClaude,
+  reattachAgentSession,
   openSessionsFolder,
   testAgentIds,
   testAgentData,
@@ -308,6 +311,7 @@ const subagentSuspendTimer = startSubagentAutoSuspend(
   recentSendMessages,
   (path) => claudeWatcher.suspendFile(path),
 );
+const sessionIdentityTimer = setInterval(refreshAgentSessionStates, 5_000);
 
 // ── Start watchers & polling ────────────────────────────────────────────
 
@@ -381,6 +385,7 @@ function cleanupAll(): void {
   layoutWatcher.stop();
   clearInterval(agentStateSaveTimer);
   clearInterval(subagentSuspendTimer);
+  clearInterval(sessionIdentityTimer);
   clearInterval(heartbeatTimer);
   stopGithubPolling();
   stopShareCleanup();

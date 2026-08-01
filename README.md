@@ -232,6 +232,10 @@ npm start
 
 <p>Адаптеры читают локальные JSONL-файлы или hook/event-экспорт: Copilot — <code>events.jsonl</code>, OpenCode — JSONL в указанном каталоге. Нативная SQLite-база OpenCode намеренно не читается напрямую, поэтому не добавляются новые зависимости и риск повреждения базы. OpenCode, Gemini, Kimi, Qwen, DeepSeek и будущие инструменты могут отправлять нормализованные события в JSONL; для каждого события поддерживаются <code>session_start</code>, <code>tool_start</code>, <code>tool_end</code>, <code>message</code>, <code>stats</code>, <code>status</code>, <code>parent</code> и <code>session_end</code>. Неизвестное имя provider сохраняется и показывается в badge.</p>
 
+<h3>tmux и Remote-SSH</h3>
+
+<p>Сессии с локального или Remote-SSH-хоста не завершаются из-за отключения браузера: приложение связывает transcript с PID, временем старта, host и tmux pane. В карточке видны состояния <code>live</code>, <code>detached</code>, <code>stale</code> и <code>dead</code>; для проверенного tmux pane кнопка <code>Reattach tmux</code> открывает тот же pane. Если tmux не установлен, обычные transcript-watchers продолжают работать без него.</p>
+
 <pre><code class="language-json">{
   "sessionSources": {
     "claudeProjectsDir": "/absolute/path/to/claude/projects",

@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
-import type { AgentStats, AgentRoleInfo, AgentDetails, ConversationMessage } from './useExtensionMessages.js'
+import type { AgentStats, AgentRoleInfo, AgentDetails, ConversationMessage, AgentSessionInfo } from './useExtensionMessages.js'
 import { vscode } from '../vscodeApi.js'
 import { getModelShortName } from '../modelInfo.js'
 
@@ -17,6 +17,7 @@ export interface AgentMessagesState {
   agentRolesMap: Map<number, AgentRoleInfo>
   agentTeamInfoMap: Map<number, { teamName?: string; isTeamLead?: boolean }>
   agentProviders: Map<number, string>
+  agentSessions: Map<number, AgentSessionInfo>
   agentDetailsState: AgentDetails | null
   agentConversationState: { id: number; messages: ConversationMessage[] } | null
   requestAgentDetails: (id: number) => void
@@ -27,6 +28,7 @@ export interface AgentMessagesState {
   setAgentRolesMap: React.Dispatch<React.SetStateAction<Map<number, AgentRoleInfo>>>
   setAgentTeamInfoMap: React.Dispatch<React.SetStateAction<Map<number, { teamName?: string; isTeamLead?: boolean }>>>
   setAgentProviders: React.Dispatch<React.SetStateAction<Map<number, string>>>
+  setAgentSessions: React.Dispatch<React.SetStateAction<Map<number, AgentSessionInfo>>>
   setAgentDetailsState: React.Dispatch<React.SetStateAction<AgentDetails | null>>
   setAgentConversationState: React.Dispatch<React.SetStateAction<{ id: number; messages: ConversationMessage[] } | null>>
 }
@@ -42,6 +44,7 @@ export function useAgentMessages(): AgentMessagesState {
   const [agentRolesMap, setAgentRolesMap] = useState<Map<number, AgentRoleInfo>>(new Map())
   const [agentTeamInfoMap, setAgentTeamInfoMap] = useState<Map<number, { teamName?: string; isTeamLead?: boolean }>>(new Map())
   const [agentProviders, setAgentProviders] = useState<Map<number, string>>(new Map())
+  const [agentSessions, setAgentSessions] = useState<Map<number, AgentSessionInfo>>(new Map())
   const [agentDetailsState, setAgentDetailsState] = useState<AgentDetails | null>(null)
   const [agentConversationState, setAgentConversationState] = useState<{ id: number; messages: ConversationMessage[] } | null>(null)
 
@@ -60,6 +63,7 @@ export function useAgentMessages(): AgentMessagesState {
     agentRolesMap,
     agentTeamInfoMap,
     agentProviders,
+    agentSessions,
     agentDetailsState,
     agentConversationState,
     requestAgentDetails,
@@ -70,6 +74,7 @@ export function useAgentMessages(): AgentMessagesState {
     setAgentRolesMap,
     setAgentTeamInfoMap,
     setAgentProviders,
+    setAgentSessions,
     setAgentDetailsState,
     setAgentConversationState,
   }
@@ -97,6 +102,7 @@ export function handleAgentMessage(
     setAgentRolesMap,
     setAgentTeamInfoMap,
     setAgentProviders,
+    setAgentSessions,
     setAgentDetailsState,
     setAgentConversationState,
   } = state
@@ -139,6 +145,24 @@ export function handleAgentMessage(
     showDesktopNotification('New agent joined', `${folderName || 'Agent'} entered the office`)
     saveAgentSeats(os)
     return true
+  } else if (msg.type === 'agentSessionState') {
+    const id = msg.id as number
+    setAgentSessions((prev) => {
+      const next = new Map(prev)
+      next.set(id, {
+        state: msg.state as AgentSessionInfo['state'],
+        host: msg.host as string,
+        pid: msg.pid as number | undefined,
+        processStartTime: msg.processStartTime as string | undefined,
+        tmuxTarget: msg.tmuxTarget as string | undefined,
+        tmuxAttached: msg.tmuxAttached as boolean | undefined,
+      })
+      return next
+    })
+    return true
+  } else if (msg.type === 'agentSessionNotice') {
+    showDesktopNotification('Session', msg.message as string)
+    return true
   } else if (msg.type === 'agentRenamed') {
     const id = msg.id as number
     const folderName = msg.folderName as string
@@ -151,6 +175,12 @@ export function handleAgentMessage(
     const id = msg.id as number
     setAgents((prev) => prev.filter((a) => a !== id))
     setAgentProviders((prev) => {
+      if (!prev.has(id)) return prev
+      const next = new Map(prev)
+      next.delete(id)
+      return next
+    })
+    setAgentSessions((prev) => {
       if (!prev.has(id)) return prev
       const next = new Map(prev)
       next.delete(id)

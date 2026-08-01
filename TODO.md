@@ -21,7 +21,7 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 ### P0
 
 1. [x] [#12](https://github.com/percheniy/office-for-claude-agents/issues/12) Ingest OpenCode, GitHub Copilot, and future agent providers through one `AgentSource` contract and generic local event input.
-2. [ ] [#9](https://github.com/percheniy/office-for-claude-agents/issues/9) Keep tmux and SSH sessions alive, distinguish detached from dead agents, and safely reattach to the same process.
+2. [x] [#9](https://github.com/percheniy/office-for-claude-agents/issues/9) Keep tmux and SSH sessions alive, distinguish detached from dead agents, and safely reattach to the same process.
 3. [ ] [#8](https://github.com/percheniy/office-for-claude-agents/issues/8) After security issue [#4](https://github.com/percheniy/office-for-claude-agents/issues/4), securely send prompts, approve or deny permissions, interrupt work, and focus the owning session from the browser.
 
 ### P1

@@ -6,7 +6,7 @@
 
 import { useState, useCallback } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
-import type { AgentStats, AgentRoleInfo, GithubTasksConfig, SubagentCharacter, PipelineIssue } from '../hooks/useExtensionMessages.js'
+import type { AgentStats, AgentRoleInfo, AgentSessionInfo, GithubTasksConfig, SubagentCharacter, PipelineIssue } from '../hooks/useExtensionMessages.js'
 import type { ToolActivity } from '../office/types.js'
 import { AgentCard } from './sidebar/AgentCard.js'
 import { TasksList } from './sidebar/TasksList.js'
@@ -20,6 +20,8 @@ interface LeftSidebarProps {
   agentRoles: Map<number, AgentRoleInfo>
   agentTeamInfo: Map<number, { teamName?: string; isTeamLead?: boolean }>
   agentProviders: Map<number, string>
+  agentSessions: Map<number, AgentSessionInfo>
+  onReattachAgent: (id: number) => void
   subagentCharacters: SubagentCharacter[]
   subagentTools: Record<number, Record<string, ToolActivity[]>>
   officeState: OfficeState
@@ -38,6 +40,8 @@ export function LeftSidebar({
   agentRoles,
   agentTeamInfo,
   agentProviders,
+  agentSessions,
+  onReattachAgent,
   subagentCharacters,
   subagentTools,
   officeState,
@@ -146,6 +150,8 @@ export function LeftSidebar({
                 agentStats={agentStats}
                 agentRoles={agentRoles}
                 agentProvider={agentProviders.get(id) || 'claude'}
+                agentSession={agentSessions.get(id)}
+                onReattachAgent={onReattachAgent}
                 agentTeamInfo={agentTeamInfo}
                 subagentCharacters={subagentCharacters}
                 subsByParent={subsByParent}
