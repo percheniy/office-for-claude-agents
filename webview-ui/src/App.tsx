@@ -59,13 +59,13 @@ function EditActionBar({ editor, editorState: es }: { editor: ReturnType<typeof 
 function App() {
   const editor = useEditorActions(getOfficeState, editorState)
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
-  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, loadedAssets, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
+  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, layoutBackupFileName, loadedAssets, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
 
   const [inspectedAgentId, setInspectedAgentId] = useState<number | null>(null)
   const handleInspectAgent = useCallback((agentId: number) => { setInspectedAgentId(agentId); requestAgentDetails(agentId); requestAgentConversation(agentId) }, [requestAgentDetails, requestAgentConversation])
   const handleCloseInspection = useCallback(() => { setInspectedAgentId(null) }, [])
 
-  const showMigrationNotice = false
+  const showMigrationNotice = layoutWasReset
   const [alwaysShowOverlay, setAlwaysShowOverlay] = useState(false)
   const [showTeamLines, setShowTeamLines] = useState(false)
   const [isHudOpen, setIsHudOpen] = useState(false)
@@ -174,6 +174,14 @@ function App() {
         onDragMove={editor.handleDragMove} editorTick={editor.editorTick}
         zoom={editor.zoom} onZoomChange={editor.handleZoomChange} panRef={editor.panRef} showTeamLines={showTeamLines}
       />
+      {showMigrationNotice && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-pixel-bg border-2 border-pixel-accent px-3 py-2 text-[18px] text-pixel-text shadow-pixel">
+          <span>{layoutBackupFileName ? `Bundled layout updated. Backup: ${layoutBackupFileName}` : 'Bundled layout updated, but the previous layout backup was not created.'}</span>
+          {layoutBackupFileName && <button className="px-2 py-1 bg-pixel-btn border-2 border-pixel-border cursor-pointer hover:bg-pixel-btn-hover" onClick={() => vscode.postMessage({ type: 'restoreLayoutBackup' })}>
+            Restore backup
+          </button>}
+        </div>
+      )}
       <ZoomControls zoom={editor.zoom} onZoomChange={editor.handleZoomChange} />
 
       {!editor.isEditMode && (

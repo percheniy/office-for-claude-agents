@@ -1,7 +1,7 @@
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, statSync, watch } from "fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync, statSync, watch, copyFileSync, readdirSync } from "fs";
 import type { FSWatcher } from "fs";
 import { homedir } from "os";
-import { join, dirname } from "path";
+import { join, dirname, basename } from "path";
 import { loadFurnitureAssets, loadDefaultLayout } from "./assetLoader.js";
 import type { LoadedFurnitureAssets } from "./assetLoader.js";
 import { getConfig } from "./configPersistence.js";
@@ -47,6 +47,35 @@ export function loadAllFurniture(assetsRoot: string): LoadedFurnitureAssets | nu
 interface LayoutLoadResult {
   layout: Record<string, unknown>;
   wasReset: boolean;
+  backupFileName?: string;
+}
+
+const LAYOUT_BACKUP_PREFIX = "layout.json.backup-";
+const LAYOUT_BACKUP_SUFFIX = ".json";
+
+function createLayoutBackup(): string | null {
+  try {
+    mkdirSync(persistDir, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[.:]/g, "-");
+    const backupFileName = `${LAYOUT_BACKUP_PREFIX}${timestamp}${LAYOUT_BACKUP_SUFFIX}`;
+    copyFileSync(persistedLayoutPath, join(persistDir, backupFileName));
+    return backupFileName;
+  } catch (err) {
+    console.error(`[Server] Failed to back up layout: ${err instanceof Error ? err.message : err}`);
+    return null;
+  }
+}
+
+function getLatestLayoutBackupPath(): string | null {
+  try {
+    const backup = readdirSync(persistDir)
+      .filter((file) => file.startsWith(LAYOUT_BACKUP_PREFIX) && file.endsWith(LAYOUT_BACKUP_SUFFIX))
+      .sort()
+      .at(-1);
+    return backup ? join(persistDir, backup) : null;
+  } catch {
+    return null;
+  }
 }
 
 export function loadLayoutWithRevision(defaultLayout: Record<string, unknown> | null): LayoutLoadResult | null {
@@ -61,8 +90,9 @@ export function loadLayoutWithRevision(defaultLayout: Record<string, unknown> | 
         console.log(
           `[Server] Layout revision outdated (${fileRevision} < ${defaultRevision}), resetting to bundled default`,
         );
+        const backupFileName = createLayoutBackup();
         writeLayoutToFile(defaultLayout!);
-        return { layout: defaultLayout!, wasReset: true };
+        return { layout: defaultLayout!, wasReset: true, backupFileName: backupFileName ?? undefined };
       }
 
       console.log(`[Server] Loaded persisted layout from ${persistedLayoutPath}`);
@@ -79,6 +109,19 @@ export function loadLayoutWithRevision(defaultLayout: Record<string, unknown> | 
   }
 
   return null;
+}
+
+export function restoreLatestLayoutBackup(): { layout: Record<string, unknown>; backupFileName: string } | null {
+  const backupPath = getLatestLayoutBackupPath();
+  if (!backupPath) return null;
+  try {
+    const layout = JSON.parse(readFileSync(backupPath, "utf-8")) as Record<string, unknown>;
+    if (!isLayoutPayload(layout)) return null;
+    return { layout, backupFileName: basename(backupPath) };
+  } catch (err) {
+    console.error(`[Server] Failed to restore layout backup: ${err instanceof Error ? err.message : err}`);
+    return null;
+  }
 }
 
 export function writeLayoutToFile(layout: Record<string, unknown>): void {

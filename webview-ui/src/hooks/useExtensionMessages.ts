@@ -137,6 +137,7 @@ export interface ExtensionMessageState {
   subagentCharacters: SubagentCharacter[]
   layoutReady: boolean
   layoutWasReset: boolean
+  layoutBackupFileName: string | null
   loadedAssets?: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> }
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]
@@ -177,6 +178,7 @@ export function useExtensionMessages(
   const [subagentCharacters, setSubagentCharacters] = useState<SubagentCharacter[]>([])
   const [layoutReady, setLayoutReady] = useState(false)
   const [layoutWasReset, setLayoutWasReset] = useState(false)
+  const [layoutBackupFileName, setLayoutBackupFileName] = useState<string | null>(null)
   const [pipelineIssues, setPipelineIssues] = useState<PipelineIssue[]>([])
   const [sendMessages, setSendMessages] = useState<Array<{ id: number; from: string; to: string; message: string; timestamp: number }>>([])
   const [shareLink, setShareLink] = useState<{ url: string; expiresAt: number } | null>(null)
@@ -244,6 +246,10 @@ export function useExtensionMessages(
         setLayoutReady(true)
         if (msg.wasReset) {
           setLayoutWasReset(true)
+          setLayoutBackupFileName(typeof msg.backupFileName === 'string' ? msg.backupFileName : null)
+        } else if (layoutReadyRef.current) {
+          setLayoutWasReset(false)
+          setLayoutBackupFileName(null)
         }
         if (os.characters.size > 0) {
           saveAgentSeats(os)
@@ -500,6 +506,7 @@ export function useExtensionMessages(
     subagentCharacters,
     layoutReady,
     layoutWasReset,
+    layoutBackupFileName,
     loadedAssets: assetState.loadedAssets,
     workspaceFolders: assetState.workspaceFolders,
     externalAssetDirectories: assetState.externalAssetDirectories,

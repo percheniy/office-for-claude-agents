@@ -72,6 +72,7 @@ export interface InitialDataDeps {
   furnitureAssets: LoadedFurnitureAssets | null;
   currentLayout: { value: Record<string, unknown> | null };
   layoutWasReset: boolean;
+  layoutBackupFileName?: string;
   isDev: boolean;
   persistedSeats: Record<number, { palette: number; hueShift: number; seatId: string | null }> | null;
   previousAgentState: { agents: Array<{ id: number; palette?: number; hueShift?: number; seatId?: string | null }> } | null;
@@ -171,7 +172,13 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
 
   const currentLayout = initDeps.currentLayout.value;
   if (currentLayout) {
-    ws.send(JSON.stringify({ type: "layoutLoaded", layout: currentLayout, version: 1, wasReset: initDeps.layoutWasReset }));
+    ws.send(JSON.stringify({
+      type: "layoutLoaded",
+      layout: currentLayout,
+      version: 1,
+      wasReset: initDeps.layoutWasReset,
+      backupFileName: initDeps.layoutBackupFileName,
+    }));
   } else {
     ws.send(JSON.stringify({ type: "layoutLoaded", layout: null, version: 0, wasReset: false }));
   }
@@ -206,6 +213,7 @@ export function setupConnectionHandler(
     assetsRoot: string;
     currentLayout: { value: Record<string, unknown> | null };
     layoutWatcher: { markOwnWrite: () => void };
+    restoreLatestLayoutBackup: () => { layout: Record<string, unknown>; backupFileName: string } | null;
     launchClaude: (bypass: boolean) => void;
     openSessionsFolder: () => void;
     testAgentIds: Set<number>;
@@ -260,6 +268,14 @@ export function setupConnectionHandler(
           } catch (err) {
             console.error(`[Server] Failed to save layout: ${err instanceof Error ? err.message : err}`);
           }
+        } else if (msg.type === "restoreLayoutBackup") {
+          const restored = deps.restoreLatestLayoutBackup();
+          if (!restored) return;
+          deps.currentLayout.value = restored.layout;
+          deps.layoutWatcher.markOwnWrite();
+          writeLayoutToFile(restored.layout);
+          broadcast({ type: "layoutLoaded", layout: restored.layout, version: 1, wasReset: false });
+          console.log(`[Server] Restored layout backup: ${restored.backupFileName}`);
         } else if (msg.type === "saveAgentSeats") {
           savePersistedSeats(msg.seats);
         } else if (msg.type === "saveSoundEnabled") {

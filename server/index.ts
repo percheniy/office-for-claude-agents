@@ -30,6 +30,7 @@ import {
   writeLayoutToFile,
   loadPersistedSeats,
   loadRoleOverrides,
+  restoreLatestLayoutBackup,
   LayoutWatcher,
   persistDir,
 } from "./layoutManager.js";
@@ -92,6 +93,7 @@ const defaultLayout = loadDefaultLayout(assetsRoot);
 const layoutResult = loadLayoutWithRevision(defaultLayout);
 const currentLayout = { value: layoutResult?.layout ?? null };
 const layoutWasReset = layoutResult?.wasReset ?? false;
+const layoutBackupFileName = layoutResult?.backupFileName;
 const persistedSeats = loadPersistedSeats();
 const roleOverrides = loadRoleOverrides();
 
@@ -236,6 +238,7 @@ initWsHandler({
   furnitureAssets,
   currentLayout,
   layoutWasReset,
+  layoutBackupFileName,
   isDev,
   persistedSeats,
   previousAgentState,
@@ -271,6 +274,7 @@ setupConnectionHandler(wss, {
   assetsRoot,
   currentLayout,
   layoutWatcher,
+  restoreLatestLayoutBackup,
   launchClaude,
   openSessionsFolder,
   testAgentIds,

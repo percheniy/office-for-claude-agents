@@ -91,7 +91,7 @@ export type ServerMessage =
   | { type: "floorTilesLoaded"; sprites: unknown[] }
   | { type: "wallTilesLoaded"; sets: unknown[] }
   | { type: "furnitureAssetsLoaded"; catalog: unknown[]; sprites: Record<string, unknown> }
-  | { type: "layoutLoaded"; layout: unknown; version: number; wasReset?: boolean }
+  | { type: "layoutLoaded"; layout: unknown; version: number; wasReset?: boolean; backupFileName?: string }
   | { type: "settingsLoaded"; soundEnabled: boolean; externalAssetDirectories: string[]; githubTasks: GithubTasksConfig; serverMode?: string }
   | { type: "externalAssetDirectoriesUpdated"; dirs: string[] }
   | { type: "agentStats"; id: number; model?: string; totalInputTokens: number; totalOutputTokens: number; totalCacheRead: number; totalCacheCreation: number; currentContextTokens?: number; currentContextLimit?: number; turnCount: number; totalDurationMs: number; cacheHitRate: number }
@@ -112,6 +112,7 @@ export type ClientMessage =
   | { type: "ready" }
   | { type: "webviewReady" }
   | { type: "saveLayout"; layout: unknown }
+  | { type: "restoreLayoutBackup" }
   | { type: "saveAgentSeats"; seats: Record<number, { palette: number; hueShift: number; seatId: string | null }> }
   | { type: "saveSoundEnabled"; enabled: boolean }
   | { type: "openSessionsFolder" }
