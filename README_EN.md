@@ -234,6 +234,8 @@ npm start
 
 <p>Sessions on a local or Remote-SSH host are not terminated when the browser disconnects: the app binds the transcript to its PID, process start time, host, and tmux pane. Cards show <code>live</code>, <code>detached</code>, <code>stale</code>, and <code>dead</code>; a verified tmux pane gets a <code>Reattach tmux</code> button that opens the same pane. Without tmux, the existing transcript watchers continue to work.</p>
 
+<p>For a live/detached tmux session, the card can also send a short prompt, interrupt the current turn, or approve/deny a pending permission. Every command re-checks provider, host, project, session, PID, process start time, and pane; transcript modification is verified after sending. Anonymous and read-only share clients do not receive control commands.</p>
+
 <pre><code class="language-json">{
   "sessionSources": {
     "claudeProjectsDir": "/absolute/path/to/claude/projects",

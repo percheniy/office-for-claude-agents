@@ -10,6 +10,8 @@ import { findPreviousAgent, type PersistedAgentState } from "./agentPersistence.
 import type { JsonlWatcher } from "./watcher.js";
 import { parseGenericAgentEvent } from "./genericParser.js";
 import { inspectAgentSession, reattachTmuxSession, type AgentSessionIdentity } from "./sessionIdentity.js";
+import { sendAgentControl, type AgentControlAction } from "./agentControl.js";
+import { statSync } from "fs";
 
 // ── Context window limits ─────────────────────────────────────────────────
 const MODEL_CONTEXT_LIMITS: Record<string, number> = {
@@ -611,6 +613,59 @@ export function reattachAgentSession(id: number): void {
     return;
   }
   broadcast({ type: "agentSessionNotice", id, message: `Opened terminal for ${agent.tmuxTarget}.` });
+}
+
+export function controlAgentSession(input: {
+  id: number;
+  action: AgentControlAction;
+  prompt?: string;
+  expectedPid?: number;
+  expectedProcessStartTime?: string;
+  expectedTmuxTarget?: string;
+}): void {
+  const agent = [...agents.values()].find((candidate) => candidate.id === input.id);
+  if (!agent) return;
+  const expectedTarget = input.expectedTmuxTarget;
+  const current = inspectAgentSession({
+    provider: agent.provider,
+    sessionId: agent.sessionId,
+    projectDir: agent.projectDir,
+    transcriptPath: agent.jsonlFile,
+  });
+  const identityMatches = !!expectedTarget
+    && current.state !== "stale"
+    && current.state !== "dead"
+    && current.tmuxTarget === expectedTarget
+    && current.pid === input.expectedPid
+    && current.processStartTime === input.expectedProcessStartTime;
+  if (!identityMatches || !current.tmuxTarget || (current.state !== "live" && current.state !== "detached")) {
+    broadcast({ type: "agentSessionNotice", id: input.id, message: "Control refused: the session changed or is not live." });
+    return;
+  }
+
+  let beforeMtime = 0;
+  try { beforeMtime = statSync(agent.jsonlFile).mtimeMs; } catch { /* action will fail observable check */ }
+  const result = sendAgentControl({ tmuxTarget: current.tmuxTarget, pid: current.pid, processStartTime: current.processStartTime }, input.action, input.prompt);
+  const targetDescription = `${agent.provider} · ${agent.sessionHost || current.host} · ${agent.projectName} · ${agent.sessionId.slice(0, 8)}`;
+  if (!result.ok) {
+    broadcast({ type: "agentSessionNotice", id: input.id, message: `Control refused for ${targetDescription}: ${result.reason || "tmux error"}` });
+    return;
+  }
+  const deadline = Date.now() + 5_000;
+  const verify = (): void => {
+    let afterMtime = beforeMtime;
+    try { afterMtime = statSync(agent.jsonlFile).mtimeMs; } catch { /* process may have closed the file */ }
+    if (afterMtime > beforeMtime) {
+      broadcast({ type: "agentSessionNotice", id: input.id, message: `Control applied to ${targetDescription}.` });
+      return;
+    }
+    if (Date.now() >= deadline) {
+      broadcast({ type: "agentSessionNotice", id: input.id, message: `Control sent to ${targetDescription}, but no transcript change was observed.` });
+      return;
+    }
+    setTimeout(verify, 250);
+  };
+  verify();
 }
 
 export function handleFileRemoved(file: WatchedFile): void {

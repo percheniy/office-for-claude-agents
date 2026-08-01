@@ -229,6 +229,7 @@ export function setupConnectionHandler(
     restoreLatestLayoutBackup: () => { layout: Record<string, unknown>; backupFileName: string } | null;
     launchClaude: (bypass: boolean) => void;
     reattachAgentSession: (id: number) => void;
+    controlAgentSession: (input: { id: number; action: "prompt" | "approve" | "deny" | "interrupt"; prompt?: string; expectedPid?: number; expectedProcessStartTime?: string; expectedTmuxTarget?: string }) => void;
     openSessionsFolder: () => void;
     testAgentIds: Set<number>;
     testAgentData: Map<number, { folderName: string; role: string; parentAgentId?: number; model: string }>;
@@ -365,8 +366,18 @@ export function setupConnectionHandler(
           } else {
             console.warn("[Server] Blocked permission-bypassed Claude launch from a non-loopback client");
           }
-        } else if (msg.type === "reattachAgent") {
+        } else if (msg.type === "reattachAgent" || msg.type === "focusAgent") {
           deps.reattachAgentSession(Number(msg.id));
+        } else if (msg.type === "controlAgent") {
+          if (!["prompt", "approve", "deny", "interrupt"].includes(msg.action)) return;
+          deps.controlAgentSession({
+            id: Number(msg.id),
+            action: msg.action,
+            prompt: typeof msg.prompt === "string" ? msg.prompt : undefined,
+            expectedPid: typeof msg.expectedPid === "number" ? msg.expectedPid : undefined,
+            expectedProcessStartTime: typeof msg.expectedProcessStartTime === "string" ? msg.expectedProcessStartTime : undefined,
+            expectedTmuxTarget: typeof msg.expectedTmuxTarget === "string" ? msg.expectedTmuxTarget : undefined,
+          });
         } else if (msg.type === "requestAgentDetails") {
           const requestedId = msg.id as number;
           for (const agent of agents.values()) {

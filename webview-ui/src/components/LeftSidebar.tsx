@@ -22,6 +22,7 @@ interface LeftSidebarProps {
   agentProviders: Map<number, string>
   agentSessions: Map<number, AgentSessionInfo>
   onReattachAgent: (id: number) => void
+  onControlAgent: (id: number, action: 'prompt' | 'approve' | 'deny' | 'interrupt', prompt: string | undefined, session: AgentSessionInfo) => void
   subagentCharacters: SubagentCharacter[]
   subagentTools: Record<number, Record<string, ToolActivity[]>>
   officeState: OfficeState
@@ -42,6 +43,7 @@ export function LeftSidebar({
   agentProviders,
   agentSessions,
   onReattachAgent,
+  onControlAgent,
   subagentCharacters,
   subagentTools,
   officeState,
@@ -152,6 +154,7 @@ export function LeftSidebar({
                 agentProvider={agentProviders.get(id) || 'claude'}
                 agentSession={agentSessions.get(id)}
                 onReattachAgent={onReattachAgent}
+                onControlAgent={onControlAgent}
                 agentTeamInfo={agentTeamInfo}
                 subagentCharacters={subagentCharacters}
                 subsByParent={subsByParent}

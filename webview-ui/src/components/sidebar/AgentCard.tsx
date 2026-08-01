@@ -4,6 +4,7 @@
  * See LICENSE-SERGEY-ADDITIONS and NOTICE.
  */
 
+import { useState } from 'react'
 import type { OfficeState } from '../../office/engine/officeState.js'
 import type { AgentSessionInfo, AgentStats, AgentRoleInfo, SubagentCharacter } from '../../hooks/useExtensionMessages.js'
 import type { ToolActivity } from '../../office/types.js'
@@ -114,6 +115,7 @@ export interface AgentCardProps {
   agentProvider: string
   agentSession?: AgentSessionInfo
   onReattachAgent: (id: number) => void
+  onControlAgent: (id: number, action: 'prompt' | 'approve' | 'deny' | 'interrupt', prompt: string | undefined, session: AgentSessionInfo) => void
   subagentCharacters: SubagentCharacter[]
   subsByParent: Map<number, SubagentCharacter[]>
   subagentTools: Record<number, Record<string, ToolActivity[]>>
@@ -131,12 +133,14 @@ export function AgentCard({
   agentProvider,
   agentSession,
   onReattachAgent,
+  onControlAgent,
   subagentCharacters: _subagentCharacters,
   subsByParent,
   subagentTools,
   officeState,
   onInspectAgent,
 }: AgentCardProps) {
+  const [prompt, setPrompt] = useState('')
   const ch = officeState.characters.get(id)
   if (!ch) return null
 
@@ -180,9 +184,18 @@ export function AgentCard({
           {roleInfo?.role && <span className="ml-auto"><RoleBadge role={roleInfo.role} colors={roleInfo.colors} /></span>}
         </div>
         {agentSession?.tmuxTarget && (agentSession.state === 'detached' || agentSession.state === 'live') && (
-          <button onClick={(event) => { event.stopPropagation(); onReattachAgent(id) }} className="text-[11px] px-1.5 py-0.5 mt-0.5 bg-pixel-btn border border-pixel-border text-pixel-text-dim hover:bg-pixel-btn-hover">
-            Reattach tmux
-          </button>
+          <div className="flex flex-wrap items-center gap-1 mt-0.5" onClick={(event) => event.stopPropagation()}>
+            <button onClick={() => onReattachAgent(id)} className="text-[11px] px-1.5 py-0.5 bg-pixel-btn border border-pixel-border text-pixel-text-dim hover:bg-pixel-btn-hover">Reattach tmux</button>
+            <button onClick={() => onControlAgent(id, 'interrupt', undefined, agentSession)} className="text-[11px] px-1.5 py-0.5 bg-pixel-btn border border-pixel-border text-pixel-text-dim hover:bg-pixel-btn-hover">Interrupt</button>
+            {hasPermission && <>
+              <button onClick={() => onControlAgent(id, 'approve', undefined, agentSession)} className="text-[11px] px-1.5 py-0.5 bg-pixel-btn border border-pixel-accent text-pixel-accent hover:bg-pixel-btn-hover">Approve</button>
+              <button onClick={() => onControlAgent(id, 'deny', undefined, agentSession)} className="text-[11px] px-1.5 py-0.5 bg-pixel-btn border border-pixel-danger text-pixel-danger hover:bg-pixel-btn-hover">Deny</button>
+            </>}
+            <form onSubmit={(event) => { event.preventDefault(); const value = prompt.trim(); if (!value) return; onControlAgent(id, 'prompt', value, agentSession); setPrompt('') }} className="flex items-center gap-1 w-full">
+              <input value={prompt} onChange={(event) => setPrompt(event.target.value)} maxLength={2000} placeholder="Short prompt" className="min-w-0 flex-1 text-[11px] px-1 py-0.5 bg-black/20 border border-pixel-border text-pixel-text" />
+              <button type="submit" className="text-[11px] px-1.5 py-0.5 bg-pixel-btn border border-pixel-border text-pixel-text-dim hover:bg-pixel-btn-hover">Send</button>
+            </form>
+          </div>
         )}
         <div className="text-[14px] overflow-hidden text-ellipsis whitespace-nowrap mb-[3px]"
           style={{ color: hasPermission ? 'var(--pixel-status-permission)' : isActive ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.4)' }}>

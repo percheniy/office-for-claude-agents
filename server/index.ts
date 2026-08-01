@@ -58,6 +58,7 @@ import {
   handleWatchedLine,
   refreshAgentSessionStates,
   reattachAgentSession,
+  controlAgentSession,
 } from "./agentManager.js";
 import { resolveTeamParent } from "./agentManager.js";
 import { startPolling as startGithubPolling, stopPolling as stopGithubPolling } from "./githubPoller.js";
@@ -287,6 +288,7 @@ setupConnectionHandler(wss, {
   restoreLatestLayoutBackup,
   launchClaude,
   reattachAgentSession,
+  controlAgentSession,
   openSessionsFolder,
   testAgentIds,
   testAgentData,

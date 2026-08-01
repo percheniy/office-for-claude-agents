@@ -236,6 +236,8 @@ npm start
 
 <p>Сессии с локального или Remote-SSH-хоста не завершаются из-за отключения браузера: приложение связывает transcript с PID, временем старта, host и tmux pane. В карточке видны состояния <code>live</code>, <code>detached</code>, <code>stale</code> и <code>dead</code>; для проверенного tmux pane кнопка <code>Reattach tmux</code> открывает тот же pane. Если tmux не установлен, обычные transcript-watchers продолжают работать без него.</p>
 
+<p>Для live/detached tmux-сессии карточка также позволяет отправить короткий prompt, прервать текущий turn или approve/deny ожидающее разрешение. Каждая команда повторно сверяет provider, host, project, session, PID, process start time и pane; после отправки проверяется изменение transcript. Анонимные и read-only share-клиенты команды не получают.</p>
+
 <pre><code class="language-json">{
   "sessionSources": {
     "claudeProjectsDir": "/absolute/path/to/claude/projects",

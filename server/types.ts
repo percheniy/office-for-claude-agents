@@ -130,6 +130,8 @@ export type ClientMessage =
   | { type: "openClaude" }
   | { type: "openClaudeBypass" }
   | { type: "reattachAgent"; id: number }
+  | { type: "focusAgent"; id: number }
+  | { type: "controlAgent"; id: number; action: "prompt" | "approve" | "deny" | "interrupt"; prompt?: string; expectedPid?: number; expectedProcessStartTime?: string; expectedTmuxTarget?: string }
   | { type: "requestAgentDetails"; id: number }
   | { type: "requestAgentConversation"; id: number }
   | { type: "setAgentRole"; id: number; role: string }

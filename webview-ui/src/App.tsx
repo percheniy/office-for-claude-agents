@@ -63,6 +63,9 @@ function App() {
 
   const [inspectedAgentId, setInspectedAgentId] = useState<number | null>(null)
   const handleInspectAgent = useCallback((agentId: number) => { setInspectedAgentId(agentId); requestAgentDetails(agentId); requestAgentConversation(agentId) }, [requestAgentDetails, requestAgentConversation])
+  const handleControlAgent = useCallback((id: number, action: 'prompt' | 'approve' | 'deny' | 'interrupt', prompt: string | undefined, session: { pid?: number; processStartTime?: string; tmuxTarget?: string }) => {
+    vscode.postMessage({ type: 'controlAgent', id, action, prompt, expectedPid: session.pid, expectedProcessStartTime: session.processStartTime, expectedTmuxTarget: session.tmuxTarget })
+  }, [])
   const handleCloseInspection = useCallback(() => { setInspectedAgentId(null) }, [])
 
   const showMigrationNotice = layoutWasReset
@@ -186,7 +189,7 @@ function App() {
 
       {!editor.isEditMode && (
         <LeftSidebar agents={agents} agentTools={agentTools} agentStatuses={agentStatuses} agentStats={agentStats}
-          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} agentProviders={agentProviders} agentSessions={agentSessions} onReattachAgent={(id) => vscode.postMessage({ type: 'reattachAgent', id })} subagentCharacters={subagentCharacters}
+          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} agentProviders={agentProviders} agentSessions={agentSessions} onReattachAgent={(id) => vscode.postMessage({ type: 'reattachAgent', id })} onControlAgent={handleControlAgent} subagentCharacters={subagentCharacters}
           subagentTools={subagentTools} officeState={officeState} onInspectAgent={handleInspectAgent}
           pipelineIssues={pipelineIssues} githubTasks={githubTasks} serverMode={serverMode} isShareMode={isShareMode()} />
       )}
