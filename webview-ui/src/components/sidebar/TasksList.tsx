@@ -4,7 +4,7 @@
  * See LICENSE-SERGEY-ADDITIONS and NOTICE.
  */
 
-import type { GithubTasksConfig, PipelineIssue } from '../../hooks/useExtensionMessages.js'
+import type { GateStatus, GithubTasksConfig, PipelineIssue } from '../../hooks/useExtensionMessages.js'
 
 function getIssueLabelColor(label: string): string {
   const normalized = label.toLowerCase()
@@ -31,8 +31,6 @@ function getPipelineStateColor(state: string): string {
 function getPipelineStateLabel(state: string): string {
   return state.replace(/_/g, ' ')
 }
-
-const PIPELINE_STAGES = ['intake_required', 'todo', 'ready', 'in_progress', 'blocked', 'review_ready', 'merge_ready', 'done']
 
 const PIPELINE_GATES = [
   { gate: 5, label: 'DOC' },
@@ -133,19 +131,19 @@ export function TasksList({
                   </div>
                 )}
                 {issue.pipelineState && (() => {
-                  const gates = (issue as any).gates || []
+                  const gates = issue.gates || []
                   const hasGateData = gates.length > 0
                   const configuredState = githubTasks.pipeline.states.find((s) => s.id === issue.pipelineState)
                   const stateColor = configuredState?.color || getPipelineStateColor(issue.pipelineState)
                   const configuredGates = githubTasks.pipeline.gates.length > 0 ? githubTasks.pipeline.gates : PIPELINE_GATES
 
                   if (hasGateData) {
-                    const passCount = gates.filter((g: any) => g.status === 'pass').length
+                    const passCount = gates.filter((g: GateStatus) => g.status === 'pass').length
                     return (
                       <div className="mt-1">
                         <div className="flex gap-0.5">
                           {configuredGates.map(({ gate, label }) => {
-                            const entry = gates.find((g: any) => g.gate === gate)
+                            const entry = gates.find((g: GateStatus) => g.gate === gate)
                             const s = entry?.status
                             const color = s === 'pass' ? '#5ac88c' : s === 'fail' ? '#e55' : 'rgba(255,255,255,0.08)'
                             return (

@@ -13,7 +13,6 @@ import {
   WANDER_MOVES_BEFORE_REST_MAX,
   SEAT_REST_MIN_SEC,
   SEAT_REST_MAX_SEC,
-  IDLE_SEAT_MAX_SEC,
   COFFEE_BREAK_CHANCE,
   COFFEE_BREAK_MIN_SEC,
   COFFEE_BREAK_MAX_SEC,
@@ -123,9 +122,11 @@ function findFreeLoungeSeat(
   seats: Map<string, Seat>,
   ch: Character,
   allCharacters?: Map<number, Character>,
-  tileMap?: TileTypeVal[][],
-  blockedTiles?: Set<string>,
+  _tileMap?: TileTypeVal[][],
+  _blockedTiles?: Set<string>,
 ): Seat | null {
+  void _tileMap
+  void _blockedTiles
   // Build set of claimed seat UIDs (characters walking toward or sitting on a seat)
   const claimedSeats = new Set<string>()
   const occupied = new Set<string>()

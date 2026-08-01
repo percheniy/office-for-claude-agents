@@ -8,7 +8,7 @@ import { useState, useCallback, useEffect, useRef } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
 import type { AgentStats, AgentRoleInfo, SubagentCharacter, ConversationMessage, AgentDetails } from '../hooks/useExtensionMessages.js'
 import type { ToolActivity } from '../office/types.js'
-import { ActivityFeed, MessagesView, formatTime, getEntryColor, bumpEntryId } from './sidebar/AgentEvents.js'
+import { ActivityFeed, MessagesView, bumpEntryId } from './sidebar/AgentEvents.js'
 import type { ActivityEntry } from './sidebar/AgentEvents.js'
 import { ConversationView, AgentDetailsView } from './sidebar/AgentChat.js'
 
@@ -36,7 +36,6 @@ export function RightSidebar({
   agents,
   agentTools,
   agentStatuses,
-  agentStats,
   agentRoles,
   subagentCharacters,
   subagentTools,

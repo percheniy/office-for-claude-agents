@@ -1,14 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
 import type { OfficeLayout, ToolActivity } from '../office/types.js'
 import { extractToolName } from '../office/toolUtils.js'
 import { migrateLayoutColors } from '../office/layout/layoutSerializer.js'
-import { buildDynamicCatalog } from '../office/layout/furnitureCatalog.js'
-import { setFloorSprites } from '../office/floorTiles.js'
-import { setWallSprites } from '../office/wallTiles.js'
-import { setCharacterTemplates } from '../office/sprites/spriteData.js'
 import { vscode } from '../vscodeApi.js'
-import { playDoneSound, setSoundEnabled, showDesktopNotification, setDesktopNotificationsEnabled } from '../notificationSound.js'
+import { playDoneSound, showDesktopNotification } from '../notificationSound.js'
 import { useAgentMessages, handleAgentMessage } from './useAgentMessages.js'
 import { useAssetMessages, handleAssetMessage } from './useAssetMessages.js'
 
@@ -151,6 +147,8 @@ export interface ExtensionMessageState {
   layoutBackupFileName: string | null
   agentProviders: Map<number, string>
   agentSessions: Map<number, AgentSessionInfo>
+  serverMode?: string
+  shareLink: { url: string; expiresAt: number } | null
   loadedAssets?: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> }
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]

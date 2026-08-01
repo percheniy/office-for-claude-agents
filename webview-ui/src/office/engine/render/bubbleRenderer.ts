@@ -228,46 +228,6 @@ export function renderTeamLines(
   let colorIdx = 0
   const leadColorMap = new Map<number, string>()
 
-  const charCenter = (ch: Character) => ({
-    x: offsetX + ch.x * zoom,
-    y: offsetY + ch.y * zoom,
-  })
-
-  // Check if points are collinear (all on the same line)
-  const areCollinear = (pts: Array<{ x: number; y: number }>): boolean => {
-    if (pts.length <= 2) return true
-    const [a, b] = pts
-    for (let i = 2; i < pts.length; i++) {
-      const cross = (b.x - a.x) * (pts[i].y - a.y) - (b.y - a.y) * (pts[i].x - a.x)
-      if (Math.abs(cross) > 0.5) return false
-    }
-    return true
-  }
-
-  // Draw a capsule between points
-  const drawCapsule = (pts: Array<{ x: number; y: number }>, color: string, padding: number) => {
-    ctx.globalAlpha = 0.33
-    ctx.fillStyle = color
-    for (const p of pts) {
-      ctx.beginPath()
-      ctx.arc(Math.round(p.x), Math.round(p.y), padding, 0, Math.PI * 2)
-      ctx.fill()
-    }
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p1 = pts[i], p2 = pts[i + 1]
-      const dx = p2.x - p1.x, dy = p2.y - p1.y
-      const len = Math.sqrt(dx * dx + dy * dy) || 1
-      const nx = (-dy / len) * padding, ny = (dx / len) * padding
-      ctx.beginPath()
-      ctx.moveTo(Math.round(p1.x + nx), Math.round(p1.y + ny))
-      ctx.lineTo(Math.round(p2.x + nx), Math.round(p2.y + ny))
-      ctx.lineTo(Math.round(p2.x - nx), Math.round(p2.y - ny))
-      ctx.lineTo(Math.round(p1.x - nx), Math.round(p1.y - ny))
-      ctx.closePath()
-      ctx.fill()
-    }
-  }
-
   // Pass 1: Draw cluster areas as tile-based squares with solid perimeter border
   const ts = TILE_SIZE * zoom // tile size in screen pixels
   ctx.save()

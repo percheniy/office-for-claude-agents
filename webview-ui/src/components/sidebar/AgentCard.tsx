@@ -134,7 +134,6 @@ export function AgentCard({
   agentSession,
   onReattachAgent,
   onControlAgent,
-  subagentCharacters: _subagentCharacters,
   subsByParent,
   subagentTools,
   officeState,

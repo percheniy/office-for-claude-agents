@@ -201,6 +201,8 @@ npm start
 
 <p>On first launch the app writes <code>~/.pixel-agents/layout.json</code> from the bundled default office layout that already ships in this repository.</p>
 
+<p>Local release checks: <code>npm run typecheck</code>, <code>npm run lint</code>, then focused tests <code>npm run test:security</code>, <code>npm run test:layout</code>, <code>npm run test:model-info</code>, <code>npm run test:providers</code>, <code>npm run test:session</code>, <code>npm run test:control</code>, <code>npm run test:paths</code>, and <code>npm run test:tool-duration</code>.</p>
+
 <p>The app auto-detects the standard session roots at <code>~/.claude/projects</code>, <code>~/.codex/sessions</code>, and <code>~/.codex/archived_sessions</code>. If your setup uses custom locations, override them with <code>PIXEL_AGENTS_CLAUDE_PROJECTS_DIR</code>, <code>PIXEL_AGENTS_CODEX_SESSIONS_DIR</code>, <code>PIXEL_AGENTS_CODEX_ARCHIVED_SESSIONS_DIR</code>, or <code>~/.pixel-agents/config.json</code>.</p>
 <p>Path precedence is environment variable → <code>sessionSources</code> in config → default path. A missing directory does not break startup; the watcher will pick it up when it appears.</p>
 

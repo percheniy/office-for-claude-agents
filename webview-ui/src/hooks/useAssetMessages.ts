@@ -62,7 +62,7 @@ export function useAssetMessages(): AssetMessagesState {
  * Returns true if the message was handled, false otherwise.
  */
 export function handleAssetMessage(
-  msg: any,
+  msg: Record<string, unknown>,
   state: AssetMessagesState,
 ): boolean {
   const {

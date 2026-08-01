@@ -203,6 +203,8 @@ npm start
 
 <p>На первом запуске приложение само создаёт <code>~/.pixel-agents/layout.json</code> из bundled default layout, который уже включён в репозиторий.</p>
 
+<p>Локальные проверки перед выпуском: <code>npm run typecheck</code>, <code>npm run lint</code>, затем focused tests <code>npm run test:security</code>, <code>npm run test:layout</code>, <code>npm run test:model-info</code>, <code>npm run test:providers</code>, <code>npm run test:session</code>, <code>npm run test:control</code>, <code>npm run test:paths</code> и <code>npm run test:tool-duration</code>.</p>
+
 <p>Источники сессий ищутся автоматически в стандартных директориях <code>~/.claude/projects</code>, <code>~/.codex/sessions</code> и <code>~/.codex/archived_sessions</code>. Если у вас кастомные пути, можно переопределить их через <code>PIXEL_AGENTS_CLAUDE_PROJECTS_DIR</code>, <code>PIXEL_AGENTS_CODEX_SESSIONS_DIR</code>, <code>PIXEL_AGENTS_CODEX_ARCHIVED_SESSIONS_DIR</code> или через <code>~/.pixel-agents/config.json</code>.</p>
 <p>Приоритет пути: переменная окружения → <code>sessionSources</code> в конфиге → стандартный путь. Несуществующий каталог не ломает запуск: watcher подключится, когда каталог появится.</p>
 

@@ -22,6 +22,8 @@
     "dev:server": "tsx watch server/index.ts",
     "dev:ui": "cd webview-ui && vite",
     "build": "npm run build:server && npm run build:ui",
+    "typecheck": "npx tsc --noEmit && npm --prefix webview-ui run typecheck",
+    "lint": "npm --prefix webview-ui run lint",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist/server.js --external:chokidar --external:ws --external:express --external:pngjs",
     "build:ui": "cd webview-ui && npx vite build --outDir ../dist/public && cp -r public/assets ../dist/public/assets",
     "prestart": "node scripts/ensure-dist.js",

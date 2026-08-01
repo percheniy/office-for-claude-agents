@@ -8,6 +8,7 @@
 // ── Manifest types ──────────────────────────────────────────
 
 export interface ManifestAsset {
+  [key: string]: unknown;
   type: 'asset';
   id: string;
   file: string;
@@ -19,6 +20,7 @@ export interface ManifestAsset {
   state?: string;
   frame?: number;
   mirrorSide?: boolean;
+  backgroundTiles?: number;
 }
 
 export interface ManifestGroup {
@@ -33,6 +35,7 @@ export interface ManifestGroup {
 export type ManifestNode = ManifestAsset | ManifestGroup;
 
 export interface FurnitureManifest {
+  [key: string]: unknown;
   id: string;
   name: string;
   category: string;
@@ -46,6 +49,9 @@ export interface FurnitureManifest {
   height?: number;
   footprintW?: number;
   footprintH?: number;
+  isDesk?: boolean;
+  isDoor?: boolean;
+  orientation?: string;
   // If type is 'group':
   groupType?: string;
   rotationScheme?: string;

@@ -103,7 +103,7 @@ export function buildDynamicCatalog(assets: LoadedAssetData): boolean {
 
   // Build all entries (including non-front variants)
   const allEntries = assets.catalog
-    .map((asset) => {
+    .map((asset): CatalogEntryWithCategory | null => {
       const sprite = assets.sprites[asset.id]
       if (!sprite) {
         console.warn(`No sprite data for asset ${asset.id}`)
@@ -463,10 +463,8 @@ export const FURNITURE_CATEGORIES: Array<{ id: FurnitureCategory; label: string 
 /** Returns the next asset ID in the rotation group (cw or ccw), or null if not rotatable. */
 export function getRotatedType(currentType: string, direction: 'cw' | 'ccw'): string | null {
   let type = currentType
-  let suffix = ''
   // Handle :left mirror suffix
   if (type.endsWith(':left')) {
-    suffix = ':left'
     type = type.slice(0, -5)
   }
   const group = rotationGroups.get(type)

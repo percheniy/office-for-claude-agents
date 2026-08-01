@@ -108,7 +108,7 @@ export function OfficeCanvas({ officeState, onClick, onDoubleClick, isEditMode, 
             showCoords: editorState.showCoords ?? false,
             showTypes: editorState.showTypes ?? false,
             typesData: (editorState.showTypes) ? {
-              seats: new Map(Array.from(officeState.seats).map(([uid, s]) => [`${s.seatCol},${s.seatRow}`, { isLounge: s.isLounge }])),
+              seats: new Map(Array.from(officeState.seats).map(([, s]) => [`${s.seatCol},${s.seatRow}`, { isLounge: s.isLounge }])),
               blockedTiles: officeState.blockedTiles,
               walkableTiles: new Set(officeState.walkableTiles.map(t => `${t.col},${t.row}`)),
             } : undefined,

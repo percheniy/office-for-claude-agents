@@ -13,7 +13,7 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 - [x] [#7](https://github.com/percheniy/office-for-claude-agents/issues/7) Support the documented Claude and Codex session directory environment variables and `sessionSources` config from one shared path resolver.
 - [x] [#2](https://github.com/percheniy/office-for-claude-agents/issues/2) Fix source installation so the documented command builds `dist/server.js` before `npm start`.
 - [x] [#5](https://github.com/percheniy/office-for-claude-agents/issues/5) Track tool completion duration by `toolId` so parallel tools update the correct history entry.
-- [ ] [#3](https://github.com/percheniy/office-for-claude-agents/issues/3) Make TypeScript and ESLint pass, then add focused local tests for parsers, WebSocket permissions, layout migration, and model recognition.
+- [x] [#3](https://github.com/percheniy/office-for-claude-agents/issues/3) Make TypeScript and ESLint pass, then add focused local tests for parsers, WebSocket permissions, layout migration, and model recognition.
 - [x] Recognize popular model families and preserve readable names for unknown future models. Covered providers: Anthropic, OpenAI/Codex, Google Gemini, Moonshot/Kimi, DeepSeek, Alibaba/Qwen, xAI/Grok, Mistral, Meta/Llama, Cohere, Amazon/Nova, Microsoft/Phi, and Zhipu/GLM.
 
 ## Product demand backlog

@@ -8,7 +8,6 @@ import { useState, useCallback } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
 import type { AgentStats, AgentRoleInfo, AgentDetails, ConversationMessage, AgentSessionInfo } from './useExtensionMessages.js'
 import { vscode } from '../vscodeApi.js'
-import { getModelShortName } from '../modelInfo.js'
 
 export interface AgentMessagesState {
   agents: number[]
@@ -85,7 +84,7 @@ export function useAgentMessages(): AgentMessagesState {
  * Returns true if the message was handled, false otherwise.
  */
 export function handleAgentMessage(
-  msg: any,
+  msg: Record<string, unknown>,
   os: OfficeState,
   state: AgentMessagesState,
   saveAgentSeats: (os: OfficeState) => void,

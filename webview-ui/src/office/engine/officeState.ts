@@ -50,7 +50,6 @@ import {
   DOOR_BRIDGE_TILES,
   getEntranceTile as _getEntranceTile,
   buildPathFromEntrance as _buildPathFromEntrance,
-  buildPathToEntrance as _buildPathToEntrance,
   startLeaveOffice as _startLeaveOffice,
 } from './entranceManager.js'
 
@@ -503,10 +502,6 @@ export class OfficeState {
     return _buildPathFromEntrance(toCol, toRow, this.layout, this.tileMap, this.blockedTiles, this.walkableTiles, this.doorTiles)
   }
 
-  /** Build a path from a source tile to the entrance tile, unblocking door tiles */
-  private buildPathToEntrance(fromCol: number, fromRow: number): Array<{ col: number; row: number }> {
-    return _buildPathToEntrance(fromCol, fromRow, this.layout, this.tileMap, this.blockedTiles, this.walkableTiles, this.doorTiles)
-  }
 
   /** Start the leave-office sequence: walk to entrance and despawn */
   private startLeaveOffice(ch: Character): void {
@@ -1414,7 +1409,7 @@ export class OfficeState {
         )
       }
       // Expose state for debugging
-      ;(globalThis as any).__pixelAgentsOS = this;
+      ;(globalThis as typeof globalThis & { __pixelAgentsOS?: OfficeState }).__pixelAgentsOS = this;
 
       // Tick bubble timer for waiting / activity bubbles
       if (ch.bubbleType === 'waiting' || ch.bubbleType === 'activity') {

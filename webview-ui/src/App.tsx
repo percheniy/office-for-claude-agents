@@ -78,16 +78,6 @@ function App() {
     /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768)
   )
 
-  if (shareMode && isMobile) {
-    return (
-      <div className="w-full h-full flex items-center justify-center flex-col gap-4 p-8 bg-pixel-bg text-pixel-text text-center">
-        <div className="text-[48px]">🖥</div>
-        <div className="text-[24px] max-w-[400px]">Отображение доступно только с desktop</div>
-        <div className="text-[18px] text-white/40 max-w-[400px]">Откройте эту ссылку на компьютере для просмотра пиксельного офиса</div>
-      </div>
-    )
-  }
-
   const hudAgentsMap = useMemo(() => {
     const os = getOfficeState()
     const map = new Map<number, { name: string; status: string }>()
@@ -161,6 +151,16 @@ function App() {
       requestAnimationFrame(() => handleFitView())
     }
   }, [layoutReady, handleFitView])
+
+  if (shareMode && isMobile) {
+    return (
+      <div className="w-full h-full flex items-center justify-center flex-col gap-4 p-8 bg-pixel-bg text-pixel-text text-center">
+        <div className="text-[48px]">🖥</div>
+        <div className="text-[24px] max-w-[400px]">Отображение доступно только с desktop</div>
+        <div className="text-[18px] text-white/40 max-w-[400px]">Откройте эту ссылку на компьютере для просмотра пиксельного офиса</div>
+      </div>
+    )
+  }
 
   if (!layoutReady) {
     return <div className="w-full h-full flex items-center justify-center text-[color:var(--vscode-foreground)]">Loading...</div>
