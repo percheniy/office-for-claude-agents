@@ -5,7 +5,7 @@ import { WebSocketServer } from "ws";
 import { join, dirname } from "path";
 import { homedir } from "os";
 import { fileURLToPath } from "url";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, unlinkSync } from "fs";
+import { existsSync, readFileSync, mkdirSync } from "fs";
 import { spawn, type ChildProcess } from "child_process";
 import crypto from "crypto";
 
@@ -19,11 +19,18 @@ import {
 } from "./assetLoader.js";
 import type { LoadedFurnitureAssets } from "./assetLoader.js";
 import { loadConfig, getConfig, saveConfig } from "./configPersistence.js";
-import { openPath, findPidsOnPort } from "./platform.js";
+import { openPath } from "./platform.js";
 import { DaemonHub } from "./daemonHub.js";
 import { isShareTokenValid } from "./shareManager.js";
 import { stopShareCleanup } from "./shareManager.js";
 import { authorizeWebSocketRequest, getServerSecurityConfig } from "./security.js";
+import {
+  isOwnedServerProcess,
+  isProcessAlive,
+  readServerPidRecord,
+  removeServerPidRecordIfOwned,
+  writeServerPidRecord,
+} from "./pidFile.js";
 import {
   loadAllFurniture,
   loadLayoutWithRevision,
@@ -311,22 +318,19 @@ startGithubPolling(agents, broadcast);
 
 // ── Server startup ──────────────────────────────────────────────────────
 
-function startServer(retries = 1): void {
+function startServer(): void {
   const pidDir = join(homedir(), ".pixel-agents");
   const pidFile = join(pidDir, ".server.pid");
-  try {
-    const existingPid = parseInt(readFileSync(pidFile, "utf-8").trim(), 10);
-    if (existingPid && existingPid !== process.pid) {
-      try {
-        process.kill(existingPid, 0);
-        console.log(`[Server] Another instance already running (PID ${existingPid}). Exiting.`);
-        process.exit(0);
-      } catch {
-        try { unlinkSync(pidFile); } catch {}
-      }
-    }
-  } catch {
-    // No PID file or unreadable
+  const existingRecord = readServerPidRecord(pidFile);
+  if (
+    existingRecord
+    && existingRecord.pid !== process.pid
+    && existingRecord.port === PORT
+    && isProcessAlive(existingRecord.pid)
+    && isOwnedServerProcess(existingRecord.pid)
+  ) {
+    console.log(`[Server] Another instance already running on port ${PORT} (PID ${existingRecord.pid}). Exiting.`);
+    process.exit(0);
   }
 
   server.listen(PORT, security.bindHost, () => {
@@ -335,7 +339,12 @@ function startServer(retries = 1): void {
 
     try {
       mkdirSync(pidDir, { recursive: true });
-      writeFileSync(pidFile, String(process.pid));
+      writeServerPidRecord(pidFile, {
+        pid: process.pid,
+        port: PORT,
+        bindHost: security.bindHost,
+        owner: "office-for-claude-agents",
+      });
     } catch {}
 
     setTimeout(() => {
@@ -347,16 +356,9 @@ function startServer(retries = 1): void {
   });
 
   server.once("error", (err: NodeJS.ErrnoException) => {
-    if (err.code === "EADDRINUSE" && retries > 0) {
-      console.log(`[Server] Port ${PORT} in use, killing existing process and retrying...`);
-      setTimeout(() => {
-        const pids = findPidsOnPort(PORT);
-        for (const pid of pids) {
-          if (pid === process.pid) continue;
-          try { process.kill(pid, "SIGTERM"); } catch {}
-        }
-        setTimeout(() => startServer(retries - 1), 1500);
-      }, 500);
+    if (err.code === "EADDRINUSE") {
+      console.error(`[Server] Port ${PORT} is already in use. The existing process was not terminated.`);
+      process.exit(1);
     } else {
       console.error(`[Server] Fatal error: ${err.message}`);
       process.exit(1);
@@ -387,7 +389,7 @@ function cleanupAll(): void {
 // Graceful shutdown
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, () => {
-    try { unlinkSync(join(homedir(), ".pixel-agents", ".server.pid")); } catch {}
+    removeServerPidRecordIfOwned(join(homedir(), ".pixel-agents", ".server.pid"), process.pid);
     cleanupAll();
     process.exit(0);
   });

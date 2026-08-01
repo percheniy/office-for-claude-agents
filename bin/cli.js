@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync, unlinkSync, openSync } from 'f
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { homedir } from 'os';
-import { spawn } from 'child_process';
+import { spawn, execFileSync } from 'child_process';
 import { createServer } from 'net';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -49,14 +49,39 @@ function checkPort(port) {
   });
 }
 
-function isServerRunning() {
-  if (!existsSync(PID_FILE)) return { running: false };
-  const pid = parseInt(readFileSync(PID_FILE, 'utf-8').trim(), 10);
+function readPidRecord() {
+  if (!existsSync(PID_FILE)) return null;
   try {
-    process.kill(pid, 0);
-    return { running: true, pid };
+    const record = JSON.parse(readFileSync(PID_FILE, 'utf-8'));
+    if (record?.owner !== 'office-for-claude-agents'
+      || !Number.isInteger(record.pid) || record.pid <= 0
+      || !Number.isInteger(record.port) || record.port <= 0
+      || typeof record.bindHost !== 'string') return null;
+    return record;
   } catch {
-    try { unlinkSync(PID_FILE); } catch {}
+    return null;
+  }
+}
+
+function isOwnedServerProcess(pid) {
+  try {
+    const command = process.platform === 'win32'
+      ? execFileSync('wmic', ['process', 'where', `ProcessId=${pid}`, 'get', 'CommandLine'], { encoding: 'utf-8' })
+      : execFileSync('ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf-8' });
+    return /(?:^|[\\/])dist[\\/]server\.js(?:\s|$)/.test(command)
+      || /(?:^|[\\/])server[\\/]index\.ts(?:\s|$)/.test(command);
+  } catch {
+    return false;
+  }
+}
+
+function isServerRunning(port) {
+  const record = readPidRecord();
+  if (!record || record.port !== port || !isOwnedServerProcess(record.pid)) return { running: false };
+  try {
+    process.kill(record.pid, 0);
+    return { running: true, pid: record.pid };
+  } catch {
     return { running: false };
   }
 }
@@ -66,7 +91,7 @@ async function startDaemon() {
     console.error('Error: dist/server.js not found. Run "npm run build" first.');
     process.exit(1);
   }
-  const status = isServerRunning();
+  const status = isServerRunning(PORT);
   if (status.running) {
     console.log(`Server already running (PID ${status.pid})`);
     console.log(`Open: http://localhost:${PORT}`);
@@ -91,7 +116,12 @@ async function startDaemon() {
     env: { ...process.env, PORT: String(PORT) },
   });
 
-  writeFileSync(PID_FILE, String(child.pid));
+  writeFileSync(PID_FILE, JSON.stringify({
+    pid: child.pid,
+    port: PORT,
+    bindHost: process.env.PIXEL_AGENTS_BIND_HOST || '127.0.0.1',
+    owner: 'office-for-claude-agents',
+  }));
   child.unref();
 
   console.log(`Server started in background (PID ${child.pid})`);
@@ -111,7 +141,7 @@ async function startForeground() {
   }
   const free = await checkPort(PORT);
   if (!free) {
-    const status = isServerRunning();
+    const status = isServerRunning(PORT);
     if (status.running) {
       console.log(`Server already running on port ${PORT} (PID ${status.pid})`);
       console.log(`Open: http://localhost:${PORT}`);
@@ -134,7 +164,7 @@ async function startForeground() {
 }
 
 function showStatus() {
-  const status = isServerRunning();
+  const status = isServerRunning(PORT);
   if (status.running) {
     console.log(`Server running (PID ${status.pid}) on port ${PORT}`);
   } else {
@@ -143,7 +173,7 @@ function showStatus() {
 }
 
 function stopServer() {
-  const status = isServerRunning();
+  const status = isServerRunning(PORT);
   if (!status.running) {
     console.log('Server not running');
     return;
