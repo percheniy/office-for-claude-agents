@@ -26,8 +26,8 @@ This list contains only confirmed findings from the 2026-08-01 product and code 
 
 ### P1
 
-4. [ ] [#11](https://github.com/percheniy/office-for-claude-agents/issues/11) Add a session picker with provider, project, state, history, and safe resume.
-5. [ ] [#10](https://github.com/percheniy/office-for-claude-agents/issues/10) Load persistent custom character packs with validation and bundled fallback.
+4. [x] [#11](https://github.com/percheniy/office-for-claude-agents/issues/11) Add a session picker with provider, project, state, history, and safe resume.
+5. [x] [#10](https://github.com/percheniy/office-for-claude-agents/issues/10) Load persistent custom character packs with validation and bundled fallback.
 
 ## Non-goals
 

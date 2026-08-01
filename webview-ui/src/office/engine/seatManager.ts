@@ -110,18 +110,20 @@ export function findFreeSeat(
  */
 export function pickDiversePalette(
   characters: Map<number, Character>,
+  allowedPalettes: number[] = Array.from({ length: PALETTE_COUNT }, (_, index) => index),
 ): { palette: number; hueShift: number } {
+  const palettePool = allowedPalettes.length > 0 ? allowedPalettes : Array.from({ length: PALETTE_COUNT }, (_, index) => index)
   // Count how many non-sub-agents use each base palette (0-5)
-  const counts = new Array(PALETTE_COUNT).fill(0) as number[]
+  const counts = new Map(palettePool.map((palette) => [palette, 0]))
   for (const ch of characters.values()) {
     if (ch.isSubagent) continue
-    counts[ch.palette]++
+    if (counts.has(ch.palette)) counts.set(ch.palette, counts.get(ch.palette)! + 1)
   }
-  const minCount = Math.min(...counts)
+  const minCount = Math.min(...counts.values())
   // Available = palettes at the minimum count (least used)
   const available: number[] = []
-  for (let i = 0; i < PALETTE_COUNT; i++) {
-    if (counts[i] === minCount) available.push(i)
+  for (const palette of palettePool) {
+    if (counts.get(palette) === minCount) available.push(palette)
   }
   const palette = available[Math.floor(Math.random() * available.length)]
   // First round (minCount === 0): no hue shift. Subsequent rounds: random >=45 degrees.

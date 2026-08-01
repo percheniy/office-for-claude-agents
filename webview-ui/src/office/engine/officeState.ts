@@ -76,6 +76,7 @@ export class OfficeState {
   subagentMeta: Map<number, { parentAgentId: number; parentToolId: string }> = new Map()
   /** Agent role strings (e.g. "boss") — used for role-restricted seat assignment */
   agentRoles: Map<number, string> = new Map()
+  enabledPalettes: number[] = [0, 1, 2, 3, 4, 5]
   private nextSubagentId = -1
   /** BFS distance map cache: key = "col,row" source → Map of distances to all reachable tiles */
   private distanceCache = new Map<string, Map<string, number>>()
@@ -489,7 +490,12 @@ export class OfficeState {
 
   /** Pick a diverse palette for a new agent based on currently active agents. */
   private pickDiversePalette(): { palette: number; hueShift: number } {
-    return _pickDiversePalette(this.characters)
+    return _pickDiversePalette(this.characters, this.enabledPalettes)
+  }
+
+  setEnabledPalettes(indexes: number[]): void {
+    const valid = [...new Set(indexes.filter((index) => Number.isInteger(index) && index >= 0 && index < 6))]
+    this.enabledPalettes = valid.length > 0 ? valid.sort((a, b) => a - b) : [0, 1, 2, 3, 4, 5]
   }
 
   /** Resolve a stable entrance tile from layout or the nearest valid walkable tile. */

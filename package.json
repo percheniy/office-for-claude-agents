@@ -36,6 +36,8 @@
     "test:control": "tsx scripts/test-agent-control.ts",
     "test:paths": "tsx scripts/test-session-paths.ts",
     "test:tool-duration": "tsx scripts/test-tool-duration.ts",
+    "test:catalog": "tsx scripts/test-session-catalog.ts",
+    "test:characters": "tsx scripts/test-character-packs.ts",
     "test:model-info": "tsx scripts/test-model-info.ts",
     "import-tileset": "tsx scripts/import-tileset.ts",
     "extract-furniture": "tsx scripts/extract-furniture.ts"

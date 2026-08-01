@@ -62,6 +62,19 @@ export interface AgentSessionInfo {
   tmuxAttached?: boolean
 }
 
+export interface SessionHistoryItem {
+  provider: string
+  sessionId: string
+  projectDir: string
+  projectName: string
+  title?: string
+  lastActivity: string
+  sizeBytes: number
+  state: 'active' | 'detached' | 'completed' | 'stale'
+  resumable: boolean
+  readOnlyReason?: string
+}
+
 export interface WorkspaceFolder {
   name: string
   path: string
@@ -149,9 +162,13 @@ export interface ExtensionMessageState {
   agentSessions: Map<number, AgentSessionInfo>
   serverMode?: string
   shareLink: { url: string; expiresAt: number } | null
+  sessionHistory: SessionHistoryItem[]
   loadedAssets?: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> }
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]
+  characterPackDirectory: string
+  enabledCharacterIndexes: number[]
+  setEnabledCharacterIndexes: React.Dispatch<React.SetStateAction<number[]>>
   githubTasks: GithubTasksConfig
   agentStats: Map<number, AgentStats>
   agentRoles: Map<number, AgentRoleInfo>
@@ -193,6 +210,7 @@ export function useExtensionMessages(
   const [pipelineIssues, setPipelineIssues] = useState<PipelineIssue[]>([])
   const [sendMessages, setSendMessages] = useState<Array<{ id: number; from: string; to: string; message: string; timestamp: number }>>([])
   const [shareLink, setShareLink] = useState<{ url: string; expiresAt: number } | null>(null)
+  const [sessionHistory, setSessionHistory] = useState<SessionHistoryItem[]>([])
 
   // Track whether initial layout has been loaded (ref to avoid re-render)
   const layoutReadyRef = useRef(false)
@@ -212,10 +230,17 @@ export function useExtensionMessages(
         showDesktopNotification,
       )) return
 
+      if (msg.type === 'settingsLoaded' && Array.isArray(msg.enabledCharacterIndexes)) {
+        os.setEnabledPalettes(msg.enabledCharacterIndexes.filter((index: unknown): index is number => typeof index === 'number'))
+      }
       if (handleAssetMessage(msg, assetState)) return
 
       // ── Layout, tools, WebSocket, pipeline — remain here ───────────
-      if (msg.type === 'layoutLoaded') {
+      if (msg.type === 'sessionList') {
+        setSessionHistory((msg.sessions || []) as SessionHistoryItem[])
+      } else if (msg.type === 'sessionNotice') {
+        showDesktopNotification('Session', msg.message as string)
+      } else if (msg.type === 'layoutLoaded') {
         // Skip external layout updates while editor has unsaved changes
         if (layoutReadyRef.current && isEditDirty?.()) {
           console.log('[Webview] Skipping external layout update — editor has unsaved changes')
@@ -538,6 +563,9 @@ export function useExtensionMessages(
     loadedAssets: assetState.loadedAssets,
     workspaceFolders: assetState.workspaceFolders,
     externalAssetDirectories: assetState.externalAssetDirectories,
+    characterPackDirectory: assetState.characterPackDirectory,
+    enabledCharacterIndexes: assetState.enabledCharacterIndexes,
+    setEnabledCharacterIndexes: assetState.setEnabledCharacterIndexes,
     githubTasks: assetState.githubTasks,
     agentStats: agentState.agentStatsMap,
     agentRoles: agentState.agentRolesMap,
@@ -550,5 +578,6 @@ export function useExtensionMessages(
     sendMessages,
     serverMode: assetState.serverMode,
     shareLink,
+    sessionHistory,
   }
 }

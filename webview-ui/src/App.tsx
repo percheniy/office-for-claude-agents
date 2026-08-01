@@ -59,7 +59,7 @@ function EditActionBar({ editor, editorState: es }: { editor: ReturnType<typeof 
 function App() {
   const editor = useEditorActions(getOfficeState, editorState)
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
-  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, layoutBackupFileName, agentProviders, agentSessions, loadedAssets, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
+  const { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, layoutWasReset, layoutBackupFileName, agentProviders, agentSessions, sessionHistory, loadedAssets, enabledCharacterIndexes, setEnabledCharacterIndexes, githubTasks, agentStats, agentRoles, agentTeamInfo, agentDetails, requestAgentDetails, agentConversation, requestAgentConversation, pipelineIssues, sendMessages, serverMode, shareLink } = useExtensionMessages(getOfficeState, editor.setLastSavedLayout, isEditDirty)
 
   const [inspectedAgentId, setInspectedAgentId] = useState<number | null>(null)
   const handleInspectAgent = useCallback((agentId: number) => { setInspectedAgentId(agentId); requestAgentDetails(agentId); requestAgentConversation(agentId) }, [requestAgentDetails, requestAgentConversation])
@@ -67,6 +67,15 @@ function App() {
     vscode.postMessage({ type: 'controlAgent', id, action, prompt, expectedPid: session.pid, expectedProcessStartTime: session.processStartTime, expectedTmuxTarget: session.tmuxTarget })
   }, [])
   const handleCloseInspection = useCallback(() => { setInspectedAgentId(null) }, [])
+  const handleToggleCharacterIndex = useCallback((index: number) => {
+    const next = enabledCharacterIndexes.includes(index)
+      ? enabledCharacterIndexes.filter((current) => current !== index)
+      : [...enabledCharacterIndexes, index].sort((a, b) => a - b)
+    if (next.length === 0) return
+    setEnabledCharacterIndexes(next)
+    getOfficeState().setEnabledPalettes(next)
+    vscode.postMessage({ type: 'saveEnabledCharacterIndexes', indexes: next })
+  }, [enabledCharacterIndexes, setEnabledCharacterIndexes])
 
   const showMigrationNotice = layoutWasReset
   const [alwaysShowOverlay, setAlwaysShowOverlay] = useState(false)
@@ -189,7 +198,7 @@ function App() {
 
       {!editor.isEditMode && (
         <LeftSidebar agents={agents} agentTools={agentTools} agentStatuses={agentStatuses} agentStats={agentStats}
-          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} agentProviders={agentProviders} agentSessions={agentSessions} onReattachAgent={(id) => vscode.postMessage({ type: 'reattachAgent', id })} onControlAgent={handleControlAgent} subagentCharacters={subagentCharacters}
+          agentRoles={agentRoles} agentTeamInfo={agentTeamInfo} agentProviders={agentProviders} agentSessions={agentSessions} sessionHistory={sessionHistory} onReattachAgent={(id) => vscode.postMessage({ type: 'reattachAgent', id })} onControlAgent={handleControlAgent} subagentCharacters={subagentCharacters}
           subagentTools={subagentTools} officeState={officeState} onInspectAgent={handleInspectAgent}
           pipelineIssues={pipelineIssues} githubTasks={githubTasks} serverMode={serverMode} isShareMode={isShareMode()} />
       )}
@@ -221,7 +230,8 @@ function App() {
           onExportLayout={handleExportLayout} onImportLayout={handleImportLayout}
           alwaysShowOverlay={alwaysShowOverlay} onToggleAlwaysShowOverlay={handleToggleAlwaysShowOverlay}
           showTeamLines={showTeamLines} onToggleShowTeamLines={() => setShowTeamLines(v => !v)}
-          onFitView={handleFitView} isHudOpen={isHudOpen} onToggleHud={() => setIsHudOpen((v) => !v)} shareLink={shareLink} />
+          onFitView={handleFitView} isHudOpen={isHudOpen} onToggleHud={() => setIsHudOpen((v) => !v)} shareLink={shareLink}
+          enabledCharacterIndexes={enabledCharacterIndexes} onToggleCharacterIndex={handleToggleCharacterIndex} />
       )}
 
       {!shareMode && editor.isEditMode && editor.isDirty && <EditActionBar editor={editor} editorState={editorState} />}

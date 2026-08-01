@@ -100,6 +100,10 @@ function sendInitialData(ws: WebSocket, isReadOnly: boolean): void {
     desktopNotifications: cfg.desktopNotifications,
     externalAssetDirectories: cfg.externalAssetDirectories,
     githubTasks: isReadOnly ? { enabled: false, maxIssues: 0, pipeline: { enabled: false, states: [], gates: [] } } : cfg.githubTasks,
+    ...(isReadOnly ? {} : {
+      characterPackDirectory: cfg.characterPackDirectory,
+      enabledCharacterIndexes: cfg.enabledCharacterIndexes,
+    }),
     serverMode: initDeps.isDev ? "dev" : "prod",
   }));
 
@@ -230,6 +234,8 @@ export function setupConnectionHandler(
     launchClaude: (bypass: boolean) => void;
     reattachAgentSession: (id: number) => void;
     controlAgentSession: (input: { id: number; action: "prompt" | "approve" | "deny" | "interrupt"; prompt?: string; expectedPid?: number; expectedProcessStartTime?: string; expectedTmuxTarget?: string }) => void;
+    listSessions: () => import("./sessionCatalog.js").SessionHistoryItem[];
+    resumeSession: (session: import("./sessionCatalog.js").SessionHistoryItem) => { ok: boolean; reason?: string };
     openSessionsFolder: () => void;
     testAgentIds: Set<number>;
     testAgentData: Map<number, { folderName: string; role: string; parentAgentId?: number; model: string }>;
@@ -269,6 +275,14 @@ export function setupConnectionHandler(
 
         if (msg.type === "webviewReady" || msg.type === "ready") {
           sendInitialData(ws, !!(ws as any).__readOnly);
+        } else if (msg.type === "listSessions") {
+          ws.send(JSON.stringify({ type: "sessionList", sessions: deps.listSessions() }));
+        } else if (msg.type === "resumeSession") {
+          if ((ws as any).__readOnly) return;
+          const session = msg.session as import("./sessionCatalog.js").SessionHistoryItem;
+          if (!session || typeof session.sessionId !== "string" || typeof session.provider !== "string") return;
+          const result = deps.resumeSession(session);
+          ws.send(JSON.stringify({ type: "sessionNotice", message: result.ok ? `Resume started for ${session.provider} ${session.sessionId.slice(0, 8)}.` : `Resume refused: ${result.reason || "unknown error"}` }));
         } else if (msg.type === "saveLayout") {
           try {
             deps.currentLayout.value = msg.layout as Record<string, unknown>;
@@ -303,6 +317,14 @@ export function setupConnectionHandler(
           cfg.desktopNotifications = !!msg.enabled;
           saveConfig(cfg);
           console.log(`[Server] Desktop notifications: ${cfg.desktopNotifications}`);
+        } else if (msg.type === "saveEnabledCharacterIndexes") {
+          const rawIndexes = Array.isArray(msg.indexes) ? msg.indexes as unknown[] : [];
+          const indexes: number[] = [...new Set(rawIndexes.filter((index: unknown): index is number => typeof index === "number" && Number.isInteger(index) && index >= 0 && index < 6))].sort((a, b) => a - b);
+          if (indexes.length === 0) return;
+          const cfg = getConfig();
+          cfg.enabledCharacterIndexes = indexes;
+          saveConfig(cfg);
+          console.log(`[Server] Enabled character indexes: ${indexes.join(",")}`);
         } else if (msg.type === "openSessionsFolder") {
           deps.openSessionsFolder();
         } else if (msg.type === "addExternalAssetDirectory") {

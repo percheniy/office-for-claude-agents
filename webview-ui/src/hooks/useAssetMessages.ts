@@ -16,11 +16,15 @@ export interface AssetMessagesState {
   loadedAssets: { catalog: FurnitureAsset[]; sprites: Record<string, string[][]> } | undefined
   workspaceFolders: WorkspaceFolder[]
   externalAssetDirectories: string[]
+  characterPackDirectory: string
+  enabledCharacterIndexes: number[]
   githubTasks: GithubTasksConfig
   serverMode: string
   setLoadedAssets: React.Dispatch<React.SetStateAction<{ catalog: FurnitureAsset[]; sprites: Record<string, string[][]> } | undefined>>
   setWorkspaceFolders: React.Dispatch<React.SetStateAction<WorkspaceFolder[]>>
   setExternalAssetDirectories: React.Dispatch<React.SetStateAction<string[]>>
+  setCharacterPackDirectory: React.Dispatch<React.SetStateAction<string>>
+  setEnabledCharacterIndexes: React.Dispatch<React.SetStateAction<number[]>>
   setGithubTasks: React.Dispatch<React.SetStateAction<GithubTasksConfig>>
   setServerMode: React.Dispatch<React.SetStateAction<string>>
 }
@@ -32,6 +36,8 @@ export function useAssetMessages(): AssetMessagesState {
   const [loadedAssets, setLoadedAssets] = useState<{ catalog: FurnitureAsset[]; sprites: Record<string, string[][]> } | undefined>()
   const [workspaceFolders, setWorkspaceFolders] = useState<WorkspaceFolder[]>([])
   const [externalAssetDirectories, setExternalAssetDirectories] = useState<string[]>([])
+  const [characterPackDirectory, setCharacterPackDirectory] = useState('')
+  const [enabledCharacterIndexes, setEnabledCharacterIndexes] = useState<number[]>([0, 1, 2, 3, 4, 5])
   const [githubTasks, setGithubTasks] = useState<GithubTasksConfig>({
     enabled: true,
     maxIssues: 30,
@@ -47,11 +53,15 @@ export function useAssetMessages(): AssetMessagesState {
     loadedAssets,
     workspaceFolders,
     externalAssetDirectories,
+    characterPackDirectory,
+    enabledCharacterIndexes,
     githubTasks,
     serverMode,
     setLoadedAssets,
     setWorkspaceFolders,
     setExternalAssetDirectories,
+    setCharacterPackDirectory,
+    setEnabledCharacterIndexes,
     setGithubTasks,
     setServerMode,
   }
@@ -69,6 +79,8 @@ export function handleAssetMessage(
     setLoadedAssets,
     setWorkspaceFolders,
     setExternalAssetDirectories,
+    setCharacterPackDirectory,
+    setEnabledCharacterIndexes,
     setGithubTasks,
     setServerMode,
   } = state
@@ -100,6 +112,12 @@ export function handleAssetMessage(
     }
     if (Array.isArray(msg.externalAssetDirectories)) {
       setExternalAssetDirectories(msg.externalAssetDirectories as string[])
+    }
+    if (typeof msg.characterPackDirectory === 'string') {
+      setCharacterPackDirectory(msg.characterPackDirectory)
+    }
+    if (Array.isArray(msg.enabledCharacterIndexes)) {
+      setEnabledCharacterIndexes(msg.enabledCharacterIndexes.filter((index): index is number => typeof index === 'number'))
     }
     if (msg.githubTasks) {
       setGithubTasks(msg.githubTasks as GithubTasksConfig)

@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, utimesSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { listSessionHistory } from "../server/sessionCatalog.js";
+
+const root = mkdtempSync(join(tmpdir(), "pixel-session-catalog-"));
+const claude = join(root, "claude");
+const codex = join(root, "codex");
+const archive = join(root, "archive");
+mkdirSync(claude); mkdirSync(codex); mkdirSync(archive);
+const special = join(claude, "session special.jsonl");
+writeFileSync(special, JSON.stringify({ sessionId: "special/id", type: "session_start" }) + "\n" + JSON.stringify({ type: "user", message: { content: [{ type: "text", text: "Fix the special path" }] } }) + "\n");
+const old = join(codex, "duplicate.jsonl");
+writeFileSync(old, JSON.stringify({ type: "session_meta", payload: { id: "duplicate", cwd: "/tmp/old" } }) + "\n");
+utimesSync(old, new Date(Date.now() - 3_600_000), new Date(Date.now() - 3_600_000));
+const newer = join(archive, "duplicate-new.jsonl");
+writeFileSync(newer, JSON.stringify({ type: "session_meta", payload: { id: "duplicate", cwd: "/tmp/new" } }) + "\n");
+const stale = join(claude, "stale.jsonl");
+writeFileSync(stale, JSON.stringify({ sessionId: "stale", type: "session_start" }) + "\n");
+utimesSync(stale, new Date(Date.now() - 3_600_000), new Date(Date.now() - 3_600_000));
+const sessions = listSessionHistory({ claudeProjectsDir: claude, codexSessionsDir: codex, codexArchivedSessionsDir: archive });
+assert.equal(sessions.filter((session) => session.provider === "codex" && session.sessionId === "duplicate").length, 1);
+assert.equal(sessions.find((session) => session.sessionId === "special/id")?.title, "Fix the special path");
+assert.equal(sessions.find((session) => session.sessionId === "duplicate")?.projectDir, "/tmp/new");
+assert.equal(sessions.find((session) => session.sessionId === "duplicate")?.state, "active");
+assert.equal(sessions.find((session) => session.sessionId === "stale")?.state, "stale");
+console.log("session catalog tests passed: bounded history, special IDs, stale files, and duplicate IDs");

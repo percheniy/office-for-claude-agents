@@ -15,6 +15,8 @@ interface BottomToolbarProps {
   isHudOpen: boolean
   onToggleHud: () => void
   shareLink: { url: string; expiresAt: number } | null
+  enabledCharacterIndexes: number[]
+  onToggleCharacterIndex: (index: number) => void
 }
 
 const btnCls = "px-2.5 py-[5px] text-[24px] text-pixel-text bg-pixel-btn border-2 border-transparent cursor-pointer hover:bg-pixel-btn-hover"
@@ -33,6 +35,8 @@ export function BottomToolbar({
   isHudOpen,
   onToggleHud,
   shareLink,
+  enabledCharacterIndexes,
+  onToggleCharacterIndex,
 }: BottomToolbarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isShareOpen, setIsShareOpen] = useState(false)
@@ -105,6 +109,8 @@ export function BottomToolbar({
       onImportLayout={onImportLayout}
       alwaysShowOverlay={alwaysShowOverlay}
       onToggleAlwaysShowOverlay={onToggleAlwaysShowOverlay}
+      enabledCharacterIndexes={enabledCharacterIndexes}
+      onToggleCharacterIndex={onToggleCharacterIndex}
     />
 
     {isShareOpen && (

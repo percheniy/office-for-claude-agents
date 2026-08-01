@@ -208,6 +208,19 @@ npm start
 <p>Источники сессий ищутся автоматически в стандартных директориях <code>~/.claude/projects</code>, <code>~/.codex/sessions</code> и <code>~/.codex/archived_sessions</code>. Если у вас кастомные пути, можно переопределить их через <code>PIXEL_AGENTS_CLAUDE_PROJECTS_DIR</code>, <code>PIXEL_AGENTS_CODEX_SESSIONS_DIR</code>, <code>PIXEL_AGENTS_CODEX_ARCHIVED_SESSIONS_DIR</code> или через <code>~/.pixel-agents/config.json</code>.</p>
 <p>Приоритет пути: переменная окружения → <code>sessionSources</code> в конфиге → стандартный путь. Несуществующий каталог не ломает запуск: watcher подключится, когда каталог появится.</p>
 
+<h3>Пользовательские character packs</h3>
+
+<p>Персональные спрайты лежат вне npm-пакета: по умолчанию в <code>~/.pixel-agents/characters</code>. Положите туда файлы <code>char_0.png</code> … <code>char_5.png</code> с исходным размером одного персонажа (112×96, 7 кадров × 3 направления). Каждый файл проверяется при запуске; повреждённый или неправильного размера заменяется bundled-версией, поэтому офис продолжает работать.</p>
+
+<p>Путь и список разрешённых персонажей сохраняются в <code>~/.pixel-agents/config.json</code>:</p>
+
+<pre><code>{
+  "characterPackDirectory": "/Users/me/.pixel-agents/characters",
+  "enabledCharacterIndexes": [0, 2, 4]
+}</code></pre>
+
+<p>Индексы ограничивают выбор новых агентов; уже сохранённые места не сбрасываются. Лицензию и права на добавленные изображения отвечает владелец pack.</p>
+
 <h2>Использование</h2>
 
 <h3>Claude CLI / Claude macOS app</h3>

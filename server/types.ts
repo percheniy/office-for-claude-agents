@@ -1,6 +1,7 @@
 import type { GithubTasksConfig } from "./configPersistence.js";
 import type { AgentProvider } from "./sourceTypes.js";
 import type { AgentSessionState } from "./sessionIdentity.js";
+import type { SessionHistoryItem } from "./sessionCatalog.js";
 
 // Agent activity states
 export type AgentActivity = "idle" | "typing" | "reading" | "waiting" | "permission";
@@ -86,6 +87,8 @@ export type ServerMessage =
   | { type: "existingAgents"; agents: number[]; folderNames: Record<number, string>; providers?: Record<number, string>; sessionStates?: Record<number, { state: AgentSessionState; host: string; pid?: number; processStartTime?: string; tmuxTarget?: string; tmuxAttached?: boolean }>; agentMeta?: Record<number, { palette?: number; hueShift?: number; seatId?: string }>; parentAgentIds?: Record<number, number>; teamNames?: Record<number, string>; isTeamLeads?: Record<number, boolean> }
   | { type: "agentSessionState"; id: number; state: AgentSessionState; host: string; pid?: number; processStartTime?: string; tmuxTarget?: string; tmuxAttached?: boolean; reason?: string }
   | { type: "agentSessionNotice"; id: number; message: string }
+  | { type: "sessionList"; sessions: SessionHistoryItem[] }
+  | { type: "sessionNotice"; message: string }
   | { type: "agentToolStart"; id: number; toolId: string; status: string }
   | { type: "agentToolDone"; id: number; toolId: string }
   | { type: "agentToolsClear"; id: number }
@@ -101,7 +104,7 @@ export type ServerMessage =
   | { type: "wallTilesLoaded"; sets: unknown[] }
   | { type: "furnitureAssetsLoaded"; catalog: unknown[]; sprites: Record<string, unknown> }
   | { type: "layoutLoaded"; layout: unknown; version: number; wasReset?: boolean; backupFileName?: string }
-  | { type: "settingsLoaded"; soundEnabled: boolean; externalAssetDirectories: string[]; githubTasks: GithubTasksConfig; serverMode?: string }
+  | { type: "settingsLoaded"; soundEnabled: boolean; externalAssetDirectories: string[]; githubTasks: GithubTasksConfig; characterPackDirectory?: string; enabledCharacterIndexes?: number[]; serverMode?: string }
   | { type: "externalAssetDirectoriesUpdated"; dirs: string[] }
   | { type: "agentStats"; id: number; model?: string; totalInputTokens: number; totalOutputTokens: number; totalCacheRead: number; totalCacheCreation: number; currentContextTokens?: number; currentContextLimit?: number; turnCount: number; totalDurationMs: number; cacheHitRate: number }
   | { type: "agentDetails"; id: number; model?: string; gitBranch?: string; cwd?: string; sessionId: string; version?: string; permissionMode?: string; toolHistory: Array<{ name: string; timestamp: string; durationMs?: number }>; tokenBreakdown: { input: number; output: number; cacheRead: number; cacheCreation: number }; contextUsage?: { input: number; output: number; cacheRead: number; total: number; limit: number }; turnCount: number; totalDurationMs: number; startTime?: string }
@@ -131,6 +134,8 @@ export type ClientMessage =
   | { type: "openClaudeBypass" }
   | { type: "reattachAgent"; id: number }
   | { type: "focusAgent"; id: number }
+  | { type: "listSessions" }
+  | { type: "resumeSession"; session: SessionHistoryItem }
   | { type: "controlAgent"; id: number; action: "prompt" | "approve" | "deny" | "interrupt"; prompt?: string; expectedPid?: number; expectedProcessStartTime?: string; expectedTmuxTarget?: string }
   | { type: "requestAgentDetails"; id: number }
   | { type: "requestAgentConversation"; id: number }
@@ -141,4 +146,5 @@ export type ClientMessage =
   | { type: "removeDaemon"; url: string }
   | { type: "toggleDaemon"; url: string; enabled: boolean }
   | { type: "getDaemonStatus" }
-  | { type: "saveDesktopNotifications"; enabled: boolean };
+  | { type: "saveDesktopNotifications"; enabled: boolean }
+  | { type: "saveEnabledCharacterIndexes"; indexes: number[] };

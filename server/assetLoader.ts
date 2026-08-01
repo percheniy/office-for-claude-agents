@@ -55,19 +55,29 @@ function listSortedPngs(dir: string, pattern: RegExp): { index: number; filename
 
 // ── Character sprites ───────────────────────────────────────────────────
 
-export function loadCharacterSprites(assetsRoot: string): LoadedCharacterSprites | null {
+export function loadCharacterSprites(assetsRoot: string, customDirectory?: string): LoadedCharacterSprites | null {
   try {
     const charDir = path.join(assetsRoot, "characters");
     const characters: CharacterDirectionSprites[] = [];
 
     for (let ci = 0; ci < CHAR_COUNT; ci++) {
-      const filePath = path.join(charDir, `char_${ci}.png`);
-      if (!fs.existsSync(filePath)) {
-        console.log(`[AssetLoader] No character sprite found at: ${filePath}`);
+      const bundledPath = path.join(charDir, `char_${ci}.png`);
+      if (!fs.existsSync(bundledPath)) {
+        console.log(`[AssetLoader] No bundled character sprite found at: ${bundledPath}`);
         return null;
       }
-
-      const pngBuffer = fs.readFileSync(filePath);
+      let pngBuffer = fs.readFileSync(bundledPath);
+      const customPath = customDirectory ? path.join(customDirectory, `char_${ci}.png`) : null;
+      if (customPath && fs.existsSync(customPath)) {
+        try {
+          pngBuffer = fs.readFileSync(customPath);
+          decodeCharacterPng(pngBuffer);
+          console.log(`[AssetLoader] Using custom character pack sprite: ${customPath}`);
+        } catch (err) {
+          console.warn(`[AssetLoader] Invalid custom sprite ${customPath}; using bundled fallback: ${err instanceof Error ? err.message : err}`);
+          pngBuffer = fs.readFileSync(bundledPath);
+        }
+      }
       characters.push(decodeCharacterPng(pngBuffer));
     }
 

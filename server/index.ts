@@ -13,6 +13,7 @@ import { JsonlWatcher } from "./watcher.js";
 import { CodexJsonlWatcher } from "./codexWatcher.js";
 import { CopilotSource, GenericHookSource, OpenCodeSource } from "./genericSource.js";
 import { resolveSessionPaths } from "./sessionPaths.js";
+import { listSessionHistory, resumeSession as resumeCatalogSession } from "./sessionCatalog.js";
 import {
   loadCharacterSprites,
   loadWallTiles,
@@ -77,6 +78,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = parseInt(process.env.PORT || "9876", 10);
 const security = getServerSecurityConfig();
 
+// ── Config ──────────────────────────────────────────────────────────────
+
+const config = loadConfig();
+
 // ── Assets ──────────────────────────────────────────────────────────────
 
 const devAssetsRoot = join(__dirname, "..", "webview-ui", "public", "assets");
@@ -86,13 +91,10 @@ const assetsRoot = isDev ? devAssetsRoot : prodAssetsRoot;
 
 console.log(`[Server] Loading assets from: ${assetsRoot}`);
 
-const characterSprites = loadCharacterSprites(assetsRoot);
+const characterSprites = loadCharacterSprites(assetsRoot, config.characterPackDirectory);
 const wallTiles = loadWallTiles(assetsRoot);
 const floorTiles = loadFloorTiles(assetsRoot);
 
-// ── Config ──────────────────────────────────────────────────────────────
-
-const config = loadConfig();
 const sessionPaths = resolveSessionPaths(process.env, config.sessionSources);
 console.log(`[Server] Config loaded: soundEnabled=${config.soundEnabled}, externalDirs=${config.externalAssetDirectories.length}`);
 
@@ -289,6 +291,11 @@ setupConnectionHandler(wss, {
   launchClaude,
   reattachAgentSession,
   controlAgentSession,
+  listSessions: () => listSessionHistory(sessionPaths),
+  resumeSession: (requested) => {
+    const canonical = listSessionHistory(sessionPaths).find((item) => item.provider === requested.provider && item.sessionId === requested.sessionId);
+    return canonical ? resumeCatalogSession(canonical) : { ok: false, reason: "Session was not found in the current catalog." };
+  },
   openSessionsFolder,
   testAgentIds,
   testAgentData,

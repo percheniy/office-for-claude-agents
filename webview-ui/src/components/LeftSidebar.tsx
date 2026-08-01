@@ -6,10 +6,12 @@
 
 import { useState, useCallback } from 'react'
 import type { OfficeState } from '../office/engine/officeState.js'
-import type { AgentStats, AgentRoleInfo, AgentSessionInfo, GithubTasksConfig, SubagentCharacter, PipelineIssue } from '../hooks/useExtensionMessages.js'
+import type { AgentStats, AgentRoleInfo, AgentSessionInfo, GithubTasksConfig, SessionHistoryItem, SubagentCharacter, PipelineIssue } from '../hooks/useExtensionMessages.js'
 import type { ToolActivity } from '../office/types.js'
 import { AgentCard } from './sidebar/AgentCard.js'
 import { TasksList } from './sidebar/TasksList.js'
+import { SessionPicker } from './sidebar/SessionPicker.js'
+import { vscode } from '../vscodeApi.js'
 
 interface LeftSidebarProps {
   agents: number[]
@@ -23,6 +25,7 @@ interface LeftSidebarProps {
   agentSessions: Map<number, AgentSessionInfo>
   onReattachAgent: (id: number) => void
   onControlAgent: (id: number, action: 'prompt' | 'approve' | 'deny' | 'interrupt', prompt: string | undefined, session: AgentSessionInfo) => void
+  sessionHistory: SessionHistoryItem[]
   subagentCharacters: SubagentCharacter[]
   subagentTools: Record<number, Record<string, ToolActivity[]>>
   officeState: OfficeState
@@ -44,6 +47,7 @@ export function LeftSidebar({
   agentSessions,
   onReattachAgent,
   onControlAgent,
+  sessionHistory,
   subagentCharacters,
   subagentTools,
   officeState,
@@ -55,6 +59,7 @@ export function LeftSidebar({
   const [collapsed, setCollapsed] = useState(false)
   const [tasksCollapsed, setTasksCollapsed] = useState(false)
   const [providerFilter, setProviderFilter] = useState('all')
+  const [sessionsOpen, setSessionsOpen] = useState(false)
   const toggleCollapse = useCallback(() => setCollapsed((v) => !v), [])
   const toggleTasksCollapse = useCallback(() => setTasksCollapsed((v) => !v), [])
 
@@ -110,10 +115,12 @@ export function LeftSidebar({
 
   return (
     <div className="absolute top-2.5 left-2.5 bottom-[60px] z-sidebar flex flex-col w-[280px] bg-pixel-bg border-2 border-pixel-border shadow-pixel overflow-hidden transition-[width] duration-200">
+      {sessionsOpen && <SessionPicker sessions={sessionHistory} onClose={() => setSessionsOpen(false)} />}
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-1.5 border-b-2 border-pixel-border bg-white/[0.03] shrink-0">
         <div className="flex items-center gap-1.5">
           <span className="text-[18px] text-pixel-accent font-bold">AGENTS</span>
+          {!isShareMode && <button onClick={() => { setSessionsOpen(true); vscode.postMessage({ type: 'listSessions' }) }} className="text-[11px] px-1 py-0.5 border border-pixel-border text-pixel-text-dim">Sessions</button>}
           {serverMode && (
             <span
               className="text-[10px] px-1 font-bold uppercase tracking-[0.5px] leading-[14px]"

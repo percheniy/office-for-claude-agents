@@ -34,6 +34,8 @@ export interface PixelAgentsConfig {
   daemons: DaemonConfig[];
   shareProxyUrl: string;  // e.g., "https://gridchins.ru/office" — public URL for share links
   sessionSources: SessionSourcesConfig;
+  characterPackDirectory: string;
+  enabledCharacterIndexes: number[];
 }
 
 export interface GithubTaskStateConfig {
@@ -80,6 +82,8 @@ const DEFAULT_CONFIG: PixelAgentsConfig = {
     },
   },
   sessionSources: {},
+  characterPackDirectory: join(CONFIG_DIR, "characters"),
+  enabledCharacterIndexes: [0, 1, 2, 3, 4, 5],
 };
 
 function normalizeGithubTasksConfig(config: Partial<GithubTasksConfig> | undefined): GithubTasksConfig {
@@ -143,6 +147,10 @@ export function loadConfig(): PixelAgentsConfig {
       shareProxyUrl: typeof (parsed as any).shareProxyUrl === "string" ? (parsed as any).shareProxyUrl : "",
       sessionSources: normalizeSessionSources((parsed as Partial<PixelAgentsConfig>).sessionSources),
       githubTasks: normalizeGithubTasksConfig(parsed.githubTasks),
+      characterPackDirectory: typeof parsed.characterPackDirectory === "string" && parsed.characterPackDirectory.trim()
+        ? parsed.characterPackDirectory.trim()
+        : DEFAULT_CONFIG.characterPackDirectory,
+      enabledCharacterIndexes: normalizeCharacterIndexes(parsed.enabledCharacterIndexes),
     };
     return cachedConfig;
   } catch (err) {
@@ -150,6 +158,12 @@ export function loadConfig(): PixelAgentsConfig {
     cachedConfig = { ...DEFAULT_CONFIG };
     return cachedConfig;
   }
+}
+
+function normalizeCharacterIndexes(value: unknown): number[] {
+  if (!Array.isArray(value)) return [...DEFAULT_CONFIG.enabledCharacterIndexes];
+  const indexes = [...new Set(value.filter((item): item is number => Number.isInteger(item) && item >= 0 && item < 6))];
+  return indexes.length > 0 ? indexes.sort((a, b) => a - b) : [...DEFAULT_CONFIG.enabledCharacterIndexes];
 }
 
 function normalizeSessionSources(value: unknown): SessionSourcesConfig {

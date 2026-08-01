@@ -9,6 +9,8 @@ interface SettingsModalProps {
   onImportLayout: () => void
   alwaysShowOverlay: boolean
   onToggleAlwaysShowOverlay: () => void
+  enabledCharacterIndexes: number[]
+  onToggleCharacterIndex: (index: number) => void
 }
 
 const menuItemCls = "flex items-center justify-between w-full px-2.5 py-[6px] text-[24px] text-pixel-text bg-transparent border-0 cursor-pointer text-left hover:bg-pixel-btn"
@@ -31,6 +33,8 @@ export function SettingsModal({
   onImportLayout,
   alwaysShowOverlay,
   onToggleAlwaysShowOverlay,
+  enabledCharacterIndexes,
+  onToggleCharacterIndex,
 }: SettingsModalProps) {
   const [soundLocal, setSoundLocal] = useState(isSoundEnabled)
   const [desktopNotifLocal, setDesktopNotifLocal] = useState(isDesktopNotificationsEnabled)
@@ -84,6 +88,16 @@ export function SettingsModal({
           <span>Always Show Labels</span>
           <Checkbox checked={alwaysShowOverlay} />
         </button>
+        <div className="px-2.5 py-1.5 border-t border-pixel-border">
+          <div className="text-[18px] text-white/70 mb-1">Characters for new agents</div>
+          <div className="flex gap-1 flex-wrap">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <button key={index} onClick={() => onToggleCharacterIndex(index)} className={`px-2 py-1 text-[18px] border-2 ${enabledCharacterIndexes.includes(index) ? 'border-pixel-accent text-pixel-accent' : 'border-pixel-border text-white/40'}`}>
+                {index}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-2 p-2.5 border-t border-pixel-border border-pixel-border text-[20px] leading-[1.45] text-white/[0.78] max-w-[520px]">
           Проект поддерживается по личной инициативе и содержит баги, которые стараюсь оперативно
           исправлять. Если вам понравилось, то лучшая благодарность это подписка на канал:{' '}
