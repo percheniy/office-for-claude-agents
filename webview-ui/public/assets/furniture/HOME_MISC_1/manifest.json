@@ -1,0 +1,13 @@
+{
+  "id": "HOME_MISC_1",
+  "name": "Home Misc 1",
+  "category": "misc",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 32,
+  "height": 48,
+  "footprintW": 2,
+  "footprintH": 1
+}

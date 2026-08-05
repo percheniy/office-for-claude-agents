@@ -1,0 +1,13 @@
+{
+  "id": "CUPBOARD_6",
+  "name": "Cupboard 6",
+  "category": "storage",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 1,
+  "width": 64,
+  "height": 48,
+  "footprintW": 4,
+  "footprintH": 2
+}

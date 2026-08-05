@@ -1,0 +1,13 @@
+{
+  "id": "PAINTING_SMALL_1",
+  "name": "Small Painting 1",
+  "category": "wall",
+  "type": "asset",
+  "canPlaceOnWalls": true,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 0,
+  "width": 32,
+  "height": 32,
+  "footprintW": 2,
+  "footprintH": 2
+}

@@ -1,0 +1,13 @@
+{
+  "id": "MO_176",
+  "name": "Modern Office 176",
+  "category": "electronics",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 32,
+  "height": 48,
+  "footprintW": 2,
+  "footprintH": 1
+}

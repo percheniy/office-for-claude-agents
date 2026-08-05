@@ -1,0 +1,13 @@
+{
+  "id": "MO_242",
+  "name": "Modern Office 242",
+  "category": "misc",
+  "type": "asset",
+  "canPlaceOnWalls": true,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 0,
+  "width": 16,
+  "height": 16,
+  "footprintW": 1,
+  "footprintH": 1
+}

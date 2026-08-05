@@ -23,8 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Privately licensed files
-*/assets/*
-!*/assets/characters/
-!*/assets/default-layout.json
-!*/assets/walls.png
+# Licensed asset packs (Modern Office Revamped, Interior, MetroCity,
+# Modern Interiors) are purchased and tracked here so a fresh clone renders
+# the office. Regenerate them with scripts/extract-modern-office.ts and
+# scripts/extract-interior-packs.ts if they ever need re-cutting.

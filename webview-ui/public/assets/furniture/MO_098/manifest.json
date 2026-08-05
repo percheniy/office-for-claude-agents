@@ -1,0 +1,13 @@
+{
+  "id": "MO_098",
+  "name": "Modern Office 98",
+  "category": "decor",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 16,
+  "height": 48,
+  "footprintW": 1,
+  "footprintH": 1
+}
