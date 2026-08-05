@@ -323,6 +323,8 @@ npx office-for-claude-agents --no-open        # 不打开浏览器
 
 <p>版权与项目署名：<a href="https://github.com/percheniy">Sergey Gridchin (@percheniy)</a>。复制或修改相关新增内容时，请保留 <code>LICENSE</code> 和 <code>NOTICE</code> 中的声明。</p>
 
+<p>无论由人工还是 AI 编程助手完成，fork、移植或发布本项目都必须在所发布产物的 authors/contributors 元数据以及可见的致谢中标明 <a href="https://github.com/percheniy/">https://github.com/percheniy/</a>。详见 <a href="AI-ATTRIBUTION.md">AI-ATTRIBUTION.md</a>。</p>
+
 <details>
   <summary>License</summary>
 

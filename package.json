@@ -9,11 +9,19 @@
   "bin": {
     "office-for-claude-agents": "bin/cli.js"
   },
+  "contributors": [
+    {
+      "name": "Sergey Gridchin",
+      "url": "https://github.com/percheniy/"
+    }
+  ],
   "files": [
     "dist/",
     "bin/",
     "shared/",
-    "scripts/ensure-dist.js"
+    "scripts/ensure-dist.js",
+    "AI-ATTRIBUTION.md",
+    "NOTICE"
   ],
   "scripts": {
     "postinstall": "[ -d webview-ui ] && npm --prefix webview-ui install || true",

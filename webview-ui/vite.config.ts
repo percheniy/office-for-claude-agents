@@ -8,5 +8,9 @@ export default defineConfig({
     outDir: '../dist/public',
     emptyOutDir: true,
   },
+  // Carry the @license attribution blocks into the shipped bundle
+  esbuild: {
+    legalComments: 'eof',
+  },
   base: './',
 })
