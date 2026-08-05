@@ -11,10 +11,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const DIST_SERVER = join(__dirname, '..', 'dist', 'server.js');
 const PIXEL_DIR = join(homedir(), '.pixel-agents');
 const PID_FILE = join(PIXEL_DIR, '.server.pid');
+const BIND_HOST = process.env.PIXEL_AGENTS_BIND_HOST || '127.0.0.1';
 
 // Parse args
 const args = process.argv.slice(2);
-const command = args.find(a => !a.startsWith('-')) || 'start';
+const FLAGS_TAKING_VALUE = new Set(['--port']);
+
+// A flag's value is not a command: skip it, or `--port 3000` reads as `3000`
+const positional = [];
+for (let i = 0; i < args.length; i++) {
+  const arg = args[i];
+  if (FLAGS_TAKING_VALUE.has(arg)) i++;
+  else if (!arg.startsWith('-')) positional.push(arg);
+}
+
+const command = positional[0] || 'start';
 const flags = new Set(args.filter(a => a.startsWith('-')));
 const portIdx = args.indexOf('--port');
 const PORT = portIdx >= 0 ? parseInt(args[portIdx + 1], 10) : 9876;
@@ -45,7 +56,9 @@ function checkPort(port) {
     const srv = createServer();
     srv.once('error', () => resolve(false));
     srv.once('listening', () => { srv.close(); resolve(true); });
-    srv.listen(port);
+    // Bind the same host as the server: a wildcard bind still succeeds while
+    // 127.0.0.1:port is taken, which would report a busy port as free
+    srv.listen(port, BIND_HOST);
   });
 }
 
@@ -68,8 +81,13 @@ function isOwnedServerProcess(pid) {
     const command = process.platform === 'win32'
       ? execFileSync('wmic', ['process', 'where', `ProcessId=${pid}`, 'get', 'CommandLine'], { encoding: 'utf-8' })
       : execFileSync('ps', ['-p', String(pid), '-o', 'command='], { encoding: 'utf-8' });
-    return /(?:^|[\\/])dist[\\/]server\.js(?:\s|$)/.test(command)
-      || /(?:^|[\\/])server[\\/]index\.ts(?:\s|$)/.test(command);
+    // A foreground start imports the server into this CLI process, so the
+    // command line reads as the bin wrapper rather than dist/server.js.
+    // The path may also start right after the interpreter, hence \s.
+    return /(?:^|[\s\\/])dist[\\/]server\.js(?:\s|$)/.test(command)
+      || /(?:^|[\s\\/])server[\\/]index\.ts(?:\s|$)/.test(command)
+      || /(?:^|[\s\\/])bin[\\/]cli\.js(?:\s|$)/.test(command)
+      || /(?:^|[\s\\/])office-for-claude-agents(?:\s|$)/.test(command);
   } catch {
     return false;
   }
@@ -119,7 +137,7 @@ async function startDaemon() {
   writeFileSync(PID_FILE, JSON.stringify({
     pid: child.pid,
     port: PORT,
-    bindHost: process.env.PIXEL_AGENTS_BIND_HOST || '127.0.0.1',
+    bindHost: BIND_HOST,
     owner: 'office-for-claude-agents',
   }));
   child.unref();
