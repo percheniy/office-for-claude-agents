@@ -199,6 +199,16 @@ npm start
 <pre><code>http://localhost:9876
 </code></pre>
 
+<h3>Commands</h3>
+
+<pre><code class="language-bash">npx office-for-claude-agents                  # run in the current terminal
+npx office-for-claude-agents --daemon         # run in the background, survives closing the terminal
+npx office-for-claude-agents status           # check whether the server is running
+npx office-for-claude-agents stop             # stop it
+npx office-for-claude-agents --port 9900      # use another port (works with any command)
+npx office-for-claude-agents --no-open        # do not open the browser
+</code></pre>
+
 <p>On first launch the app writes <code>~/.pixel-agents/layout.json</code> from the bundled default office layout that already ships in this repository.</p>
 
 <p>Local release checks: <code>npm run typecheck</code>, <code>npm run lint</code>, then focused tests <code>npm run test:security</code>, <code>npm run test:layout</code>, <code>npm run test:model-info</code>, <code>npm run test:providers</code>, <code>npm run test:session</code>, <code>npm run test:control</code>, <code>npm run test:paths</code>, and <code>npm run test:tool-duration</code>.</p>
@@ -302,7 +312,9 @@ npm start
 
 <p>The main built-in pack lives in <code>webview-ui/public/assets</code>: characters, floors, walls, furniture manifests, sprites, and the bundled default layout.</p>
 
-<p>Additional assets can be connected via external asset directories. If you have commercial tilesets, mount them separately and locally — do not commit them to a public repository without a license.</p>
+<p>The furniture is cut from purchased tilesets and ships in the repository and the npm package, so a fresh install opens a furnished office. Re-cut the sprites from the source packs with <code>scripts/extract-modern-office.ts</code> and <code>scripts/extract-interior-packs.ts</code>.</p>
+
+<p>Additional assets can be connected via external asset directories. Keep your own commercial tilesets local and do not commit them to a public repository without a license that permits redistribution.</p>
 
 <h2>Tech Stack</h2>
 
@@ -336,7 +348,8 @@ npm start
 <h2>Credits</h2>
 
 <ul>
-  <li><a href="https://github.com/pablodelucca/pixel-agents">pablodelucca/pixel-agents</a> by Pablo De Lucca</li>
+  <li><a href="https://github.com/pixel-agents-hq/pixel-agents">pixel-agents-hq/pixel-agents</a> by Pablo De Lucca</li>
+  <li><a href="https://limezu.itch.io/">LimeZu</a> for the Modern Office Revamped and Modern Interiors tilesets the furniture sprites are cut from</li>
   <li>Pablo De Lucca for standalone groundwork</li>
   <li>Sergey Gridchin for public standalone additions, Codex support, task sidebar generalization, richer inspection, and release packaging</li>
 </ul>

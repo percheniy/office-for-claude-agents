@@ -187,6 +187,16 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
 <pre><code>http://localhost:9876
 </code></pre>
 
+<h3>命令</h3>
+
+<pre><code class="language-bash">npx office-for-claude-agents                  # 在当前终端中运行
+npx office-for-claude-agents --daemon         # 后台运行，关闭终端后仍继续
+npx office-for-claude-agents status           # 检查服务器是否在运行
+npx office-for-claude-agents stop             # 停止服务器
+npx office-for-claude-agents --port 9900      # 使用其他端口（可与任意命令组合）
+npx office-for-claude-agents --no-open        # 不打开浏览器
+</code></pre>
+
 <p>首次启动时，应用会自动从仓库中内置的默认布局创建 <code>~/.pixel-agents/layout.json</code>。</p>
 
 <p>应用自动检测标准会话目录 <code>~/.claude/projects</code>、<code>~/.codex/sessions</code> 和 <code>~/.codex/archived_sessions</code>。如果您使用自定义路径，可通过 <code>PIXEL_AGENTS_CLAUDE_PROJECTS_DIR</code>、<code>PIXEL_AGENTS_CODEX_SESSIONS_DIR</code>、<code>PIXEL_AGENTS_CODEX_ARCHIVED_SESSIONS_DIR</code> 环境变量或 <code>~/.pixel-agents/config.json</code> 覆盖。</p>
@@ -269,7 +279,9 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
 
 <p>主要内置资源包位于 <code>webview-ui/public/assets</code>：角色、地板、墙壁、家具清单、精灵图和内置默认布局。</p>
 
-<p>可通过外部资源目录连接额外资源。如果您有商业瓦片集，请单独挂载并保存在本地——未经许可请勿提交到公共仓库。</p>
+<p>家具素材取自已购买的瓦片集，随仓库和 npm 包一同分发，因此全新安装即可看到布置好的办公室。可用 <code>scripts/extract-modern-office.ts</code> 与 <code>scripts/extract-interior-packs.ts</code> 从原始素材包重新切图。</p>
+
+<p>可通过外部资源目录连接额外资源。您自己的商业瓦片集请保存在本地，未经允许再分发的许可请勿提交到公共仓库。</p>
 
 <h2>技术栈</h2>
 
@@ -303,7 +315,8 @@ YouTube: <a href="https://www.youtube.com/watch?v=seJ8nwOdRYA" target="_blank">h
 <h2>Credits</h2>
 
 <ul>
-  <li><a href="https://github.com/pablodelucca/pixel-agents">pablodelucca/pixel-agents</a> by Pablo De Lucca</li>
+  <li><a href="https://github.com/pixel-agents-hq/pixel-agents">pixel-agents-hq/pixel-agents</a> by Pablo De Lucca</li>
+  <li><a href="https://limezu.itch.io/">LimeZu</a> — 家具精灵图所取自的 Modern Office Revamped 与 Modern Interiors 瓦片集</li>
   <li>Pablo De Lucca for standalone groundwork</li>
   <li>Sergey Gridchin for public standalone additions, Codex support, task sidebar generalization, richer inspection, and release packaging</li>
 </ul>
