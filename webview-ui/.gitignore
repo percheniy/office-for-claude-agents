@@ -23,41 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Privately licensed files
-*/assets/*
-!*/assets/characters/
-!*/assets/default-layout.json
-!*/assets/walls.png
-
-# Furniture from the MIT upstream set is tracked; sprites cut from the paid
-# packs (Modern Office Revamped, Interior, MetroCity, Modern Interiors) are
-# not — regenerate those with scripts/extract-modern-office.ts and
-# scripts/extract-interior-packs.ts.
-!*/assets/furniture/
-*/assets/furniture/*
-!*/assets/furniture/ANIM_DOOR/
-!*/assets/furniture/BIN/
-!*/assets/furniture/BOOKSHELF/
-!*/assets/furniture/CACTUS/
-!*/assets/furniture/CLOCK/
-!*/assets/furniture/COFFEE/
-!*/assets/furniture/COFFEE_TABLE/
-!*/assets/furniture/CUSHIONED_BENCH/
-!*/assets/furniture/CUSHIONED_CHAIR/
-!*/assets/furniture/DESK/
-!*/assets/furniture/DOUBLE_BOOKSHELF/
-!*/assets/furniture/HANGING_PLANT/
-!*/assets/furniture/LARGE_PAINTING/
-!*/assets/furniture/LARGE_PLANT/
-!*/assets/furniture/PC/
-!*/assets/furniture/PLANT/
-!*/assets/furniture/PLANT_2/
-!*/assets/furniture/POT/
-!*/assets/furniture/SMALL_PAINTING/
-!*/assets/furniture/SMALL_PAINTING_2/
-!*/assets/furniture/SMALL_TABLE/
-!*/assets/furniture/SOFA/
-!*/assets/furniture/TABLE_FRONT/
-!*/assets/furniture/WHITEBOARD/
-!*/assets/furniture/WOODEN_BENCH/
-!*/assets/furniture/WOODEN_CHAIR/
+# Licensed asset packs (Modern Office Revamped, Interior, MetroCity,
+# Modern Interiors) are purchased and tracked here so a fresh clone renders
+# the office. Regenerate them with scripts/extract-modern-office.ts and
+# scripts/extract-interior-packs.ts if they ever need re-cutting.

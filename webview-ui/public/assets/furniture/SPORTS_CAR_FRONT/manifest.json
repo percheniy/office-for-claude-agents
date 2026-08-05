@@ -1,0 +1,13 @@
+{
+  "id": "SPORTS_CAR_FRONT",
+  "name": "Sports Car (front)",
+  "category": "misc",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 96,
+  "height": 64,
+  "footprintW": 6,
+  "footprintH": 2
+}

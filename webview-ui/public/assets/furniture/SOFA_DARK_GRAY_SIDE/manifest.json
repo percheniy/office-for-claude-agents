@@ -1,0 +1,13 @@
+{
+  "id": "SOFA_DARK_GRAY_SIDE",
+  "name": "Dark Gray Sofa (side)",
+  "category": "chairs",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 32,
+  "height": 48,
+  "footprintW": 2,
+  "footprintH": 1
+}

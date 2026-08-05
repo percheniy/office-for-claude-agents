@@ -1,0 +1,13 @@
+{
+  "id": "MO_165",
+  "name": "Modern Office 165",
+  "category": "electronics",
+  "type": "asset",
+  "canPlaceOnWalls": true,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 0,
+  "width": 32,
+  "height": 16,
+  "footprintW": 2,
+  "footprintH": 1
+}

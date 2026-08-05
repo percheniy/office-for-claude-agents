@@ -1,0 +1,13 @@
+{
+  "id": "MO_328",
+  "name": "Modern Office 328",
+  "category": "decor",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 32,
+  "height": 48,
+  "footprintW": 2,
+  "footprintH": 1
+}

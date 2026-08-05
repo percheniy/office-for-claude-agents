@@ -1,0 +1,13 @@
+{
+  "id": "DARK_SEDAN_FRONT",
+  "name": "Dark Sedan (front)",
+  "category": "misc",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 2,
+  "width": 64,
+  "height": 64,
+  "footprintW": 4,
+  "footprintH": 2
+}

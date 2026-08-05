@@ -13,17 +13,7 @@
     "dist/",
     "bin/",
     "shared/",
-    "scripts/ensure-dist.js",
-    "!dist/public/assets/furniture/MO_*",
-    "!dist/public/assets/furniture/MI_*",
-    "!dist/public/assets/furniture/CUPBOARD_*",
-    "!dist/public/assets/furniture/LAMP_*",
-    "!dist/public/assets/furniture/PAINTING_SMALL_*",
-    "!dist/public/assets/furniture/HOME_MISC_*",
-    "!dist/public/assets/furniture/FIREPLACE_*",
-    "!dist/public/assets/furniture/SOFA_DARK_GRAY_*",
-    "!dist/public/assets/furniture/*_CAR_*",
-    "!dist/public/assets/furniture/DARK_SEDAN_*"
+    "scripts/ensure-dist.js"
   ],
   "scripts": {
     "postinstall": "[ -d webview-ui ] && npm --prefix webview-ui install || true",

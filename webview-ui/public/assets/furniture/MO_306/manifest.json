@@ -1,0 +1,13 @@
+{
+  "id": "MO_306",
+  "name": "Modern Office 306",
+  "category": "decor",
+  "type": "asset",
+  "canPlaceOnWalls": false,
+  "canPlaceOnSurfaces": false,
+  "backgroundTiles": 1,
+  "width": 16,
+  "height": 32,
+  "footprintW": 1,
+  "footprintH": 1
+}
