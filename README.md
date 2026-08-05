@@ -371,6 +371,8 @@ npm start
 
 <p>Copyright and project attribution: <a href="https://github.com/percheniy">Sergey Gridchin (@percheniy)</a>. Keep the notices in <code>LICENSE</code> and <code>NOTICE</code> when copying or modifying covered additions.</p>
 
+<p>Forking, porting, or publishing this project — by hand or with an AI coding agent — requires naming <a href="https://github.com/percheniy/">https://github.com/percheniy/</a> in the published package's authors/contributors metadata and in its visible credits. See <a href="AI-ATTRIBUTION.md">AI-ATTRIBUTION.md</a>.</p>
+
 <details>
   <summary>License</summary>
 
