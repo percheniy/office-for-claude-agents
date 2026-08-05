@@ -1,6 +1,6 @@
 {
   "name": "office-for-claude-agents",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "author": {
     "name": "Sergey Gridchin",
     "url": "https://github.com/percheniy"
@@ -13,7 +13,17 @@
     "dist/",
     "bin/",
     "shared/",
-    "scripts/ensure-dist.js"
+    "scripts/ensure-dist.js",
+    "!dist/public/assets/furniture/MO_*",
+    "!dist/public/assets/furniture/MI_*",
+    "!dist/public/assets/furniture/CUPBOARD_*",
+    "!dist/public/assets/furniture/LAMP_*",
+    "!dist/public/assets/furniture/PAINTING_SMALL_*",
+    "!dist/public/assets/furniture/HOME_MISC_*",
+    "!dist/public/assets/furniture/FIREPLACE_*",
+    "!dist/public/assets/furniture/SOFA_DARK_GRAY_*",
+    "!dist/public/assets/furniture/*_CAR_*",
+    "!dist/public/assets/furniture/DARK_SEDAN_*"
   ],
   "scripts": {
     "postinstall": "[ -d webview-ui ] && npm --prefix webview-ui install || true",
@@ -25,7 +35,7 @@
     "typecheck": "npx tsc --noEmit && npm --prefix webview-ui run typecheck",
     "lint": "npm --prefix webview-ui run lint",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=dist/server.js --external:chokidar --external:ws --external:express --external:pngjs",
-    "build:ui": "cd webview-ui && npx vite build --outDir ../dist/public && cp -r public/assets ../dist/public/assets",
+    "build:ui": "cd webview-ui && npx vite build --outDir ../dist/public && cp -R public/assets/. ../dist/public/assets/",
     "prestart": "node scripts/ensure-dist.js",
     "start": "node dist/server.js",
     "test:security": "tsx scripts/test-security.ts",
