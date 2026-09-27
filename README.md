@@ -2,6 +2,10 @@
 
 <h1>Визуализация ИИ агентов Claude и Codex в real time в браузере</h1>
 
+[![Watch the demo: Office for Claude Agents in 46 seconds](docs/images/demo-preview.png)](https://github.com/user-attachments/assets/e329e8f7-6df6-4e8a-a9b3-bd87c20a09aa)
+
+*Ролик сгенерирован автоматически с помощью ИИ.*
+
 <p align="center">
   <img src="docs/images/main_picture_agent_visualization.png" width="980" alt="Главный экран визуализации агентов" />
 </p>

@@ -2,6 +2,10 @@
 
 <h1>Real-time Visualization of Claude and Codex AI Agents in your browser</h1>
 
+[![Watch the demo: Office for Claude Agents in 46 seconds](docs/images/demo-preview.png)](https://github.com/user-attachments/assets/e329e8f7-6df6-4e8a-a9b3-bd87c20a09aa)
+
+*This video was generated automatically with AI.*
+
 <p align="center">
   <img src="docs/images/main_picture_agent_visualization.png" width="980" alt="Main agent visualization screen" />
 </p>
